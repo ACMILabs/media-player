@@ -1,0 +1,5 @@
+config.env
+!resources/example.mp4
+.DS_Store
+.venv
+
