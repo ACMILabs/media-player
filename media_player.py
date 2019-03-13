@@ -42,7 +42,6 @@ def download_file(url):
             # Does the remote file exist?
             response = requests.head(url, allow_redirects=True)
             response.raise_for_status()
-            import ipdb; ipdb.set_trace()
 
             # NOTE the stream=True parameter below
             with requests.get(url, stream=True) as r:
@@ -54,7 +53,7 @@ def download_file(url):
             return local_filename
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
             print(f'Failed to download the file {local_filename} with error {e}')
-    print(f'Tried {DOWNLOAD_RETRIES} times, giving up.')
+    print(f'Tried to download {url} {DOWNLOAD_RETRIES} times, giving up.')
 
 
 # Download playlist JSON from XOS
@@ -69,6 +68,7 @@ try:
         video_filename = os.path.basename(urlparse(resource_url).path)
         
         if not os.path.isfile('resources/' + video_filename):
+            print(f'{video_filename} not available locally, attempting to download it now.')
             download_file(resource_url)
         
         # If it's now available locally, add it to the playlist to be played
