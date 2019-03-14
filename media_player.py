@@ -96,7 +96,7 @@ except Exception as error:
     print(f'Video playback test failed with error {error}')
 
 
+# TODO: Use vlc python bindings.
 # Play the playlist in vlc
-for video in vlc_playlist:
-    # TODO: Use vlc python bindings.
-    print(subprocess.check_output(['vlc', '-Lf', '--no-random', '--no-spu', '--no-video-title-show', '--video-on-top', 'resources']))
+vlc_display_command = ['vlc', '--loop', '--fullscreen', '--no-random', '--no-spu', '--no-osd', '--no-input-fast-seek', '--no-interact', '--no-video-title-show', '--video-on-top']
+print(subprocess.check_output(vlc_display_command + vlc_playlist))
