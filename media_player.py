@@ -1,5 +1,6 @@
 import os
 import requests
+import subprocess
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -97,18 +98,5 @@ except Exception as error:
 
 # Play the playlist in vlc
 for video in vlc_playlist:
-    # TODO: get this running on macOS and Windows
-    # See: https://github.com/oaubert/python-vlc/blob/master/examples/cocoavlc.py
-
-    player = vlc.MediaPlayer(video)
-    player.play()
-    playing = set([1,2,3,4])
-    # time.sleep(1)
-    duration = player.get_length() / 1000
-    mm, ss = divmod(duration, 60)
-
-    while True:
-        state = player.get_state()
-        if state not in playing:
-            break
-        continue
+    # TODO: Use vlc python bindings.
+    print(subprocess.check_output(['vlc', '-LZf', '--no-spu', '--no-video-title-show', '--video-on-top', 'resources']))
