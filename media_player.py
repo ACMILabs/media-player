@@ -15,8 +15,6 @@ DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES'))
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 vlc_playlist = []
-Instance = vlc.Instance('--input-repeat=-1', '--fullscreen', '--mouse-hide-timeout=0')
-# TODO: Instance.set_playback_mode(vlc.PlaybackMode.loop)
 
 
 def datetime_now():
