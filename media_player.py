@@ -97,10 +97,10 @@ except Exception as error:
 
 # Play the playlist in vlc
 for video in vlc_playlist:
-    player = Instance.media_player_new()
-    media = Instance.media_new(video)
-    media.get_mrl()
-    player.set_media(media)
+    # TODO: get this running on macOS and Windows
+    # See: https://github.com/oaubert/python-vlc/blob/master/examples/cocoavlc.py
+
+    player = vlc.MediaPlayer(video)
     player.play()
     playing = set([1,2,3,4])
     # time.sleep(1)
