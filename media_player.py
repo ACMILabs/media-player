@@ -99,4 +99,4 @@ except Exception as error:
 # Play the playlist in vlc
 for video in vlc_playlist:
     # TODO: Use vlc python bindings.
-    print(subprocess.check_output(['vlc', '-LZf', '--no-spu', '--no-video-title-show', '--video-on-top', 'resources']))
+    print(subprocess.check_output(['vlc', '-Lf', '--no-random', '--no-spu', '--no-video-title-show', '--video-on-top', 'resources']))
