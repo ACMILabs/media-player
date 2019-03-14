@@ -1,6 +1,2 @@
 pytz
 requests
-
-# vlc reltaed
-click
-python-vlc
