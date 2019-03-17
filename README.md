@@ -11,6 +11,7 @@ A media player prototype using Python to launch VLC.
 * `mv config.tmpl.env config.env`
 * Create a Playlist in XOS with resources.
 * Edit the `config.env` to point to the ID of your Playlist in Django.
+* Run `source config.env` to load environment variables.
 * Run `python media_player.py`
 
 ## Installation on Windows
@@ -26,6 +27,7 @@ A media player prototype using Python to launch VLC.
   * `mv config.tmpl.env config.env`
   * Create a Playlist in XOS with resources.
   * Edit the `config.env` to point to the ID of your Playlist in Django.
+  * Run `source config.env` to load environment variables.
   * Run `python media_player.py`
 
 ### To make this autorun at startup:
