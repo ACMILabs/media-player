@@ -12,6 +12,7 @@ A media player prototype using Python to launch VLC.
 * Create a Playlist in XOS with resources.
 * Edit the `config.env` to point to the ID of your Playlist in Django.
 * Run `source config.env` to load environment variables.
+* Turn on the http server: VLC > Preferences > http web interface > tick the box & set a password.
 * Run `python media_player.py`
 
 ## Installation on Windows
@@ -28,6 +29,7 @@ A media player prototype using Python to launch VLC.
   * Create a Playlist in XOS with resources.
   * Edit the `config.env` to point to the ID of your Playlist in Django.
   * Run `source config.env` to load environment variables.
+  * Turn on the http server: VLC > Preferences > http web interface > tick the box & set a password.
   * Run `python media_player.py`
 
 ### To make this autorun at startup:
@@ -44,3 +46,21 @@ start "" "%SYSTEMDRIVE%\Program Files\Git\bin\sh.exe" --login -i -c "source conf
 * Press the Windows button and type Run.
 * In the Run dialog type: `shell:startup`
 * Cut and paste the shortcut into this folder.
+
+## Setup RabbitMQ user
+
+There's a demo RabbitMQ server setup on our Ubuntu Server. It's setup to start the `rabbitmq-server` service at boot. I used this command to do that: `sudo update-rc.d rabbitmq-server defaults`, but to manually start/stop the server use: `sudo service rabbitmq-server stop/start/restart`
+
+To setup a user:
+
+* Create a new user `sudo rabbitmqctl add_user username password`
+* Give it the permissions needed `sudo rabbitmqctl set_permissions username ".*" ".*" ".*"` - where ".*" is all permissions for configuration/write/read.
+* List the user permissions `sudo rabbitmqctl list_user_permissions username`
+
+The address of the AMQP service is then: `amqp://username:password@172.16.80.105:5672//`
+
+## Sample AMQP consumer
+
+There's a sample consumer to see the output from the `mewdia_player.py` vlc http server, run it with: `python consumer.py`.
+
+You'll need to have the config variables loaded: `source config.env`
