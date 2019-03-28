@@ -21,7 +21,7 @@ VLC_PASSWORD = os.getenv('VLC_PASSWORD')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
-vlc_playlist = []
+vlc_playlist = []  # An array of dictionaries with label id & resource
 queue_name = f'playback_{MEDIA_PLAYER_ID}'
 
 # Playback messaging
@@ -42,11 +42,23 @@ def post_playback_to_xos():
             response = session.get(VLC_URL + 'requests/status.json')
             response.raise_for_status()
             vlc_status = response.json()
+
+            # Match playback filename with label id in vlc_playlist
+            playback_position = vlc_status['position']
+            currently_playing_label_id = None
+            currently_playing_resource = os.path.basename(urlparse(vlc_status['information']['category']['meta']['filename']).path)
+            for item in vlc_playlist:
+                item_filename = os.path.basename(urlparse(item['resource']).path)
+                if item_filename == currently_playing_resource:
+                    currently_playing_label_id = int(item['id'])
+
             media_player_status_json = {
                 "datetime": datetime_now(),
                 "playlist_id": int(PLAYLIST_ID),
                 "media_player_id": int(MEDIA_PLAYER_ID),
-                "vlc_status": vlc_status
+                "label_id": currently_playing_label_id,
+                "playback_position": playback_position
+                #"vlc_status": vlc_status
             }
 
             # Publish to XOS broker
@@ -89,7 +101,10 @@ def start_vlc():
     # Play the playlist in vlc
     print('Starting VLC...')
     vlc_display_command = ['vlc', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top']
-    subprocess.check_output(vlc_display_command + vlc_playlist)
+    playlist_of_resources = []
+    for item in vlc_playlist:
+        playlist_of_resources.append(item['resource'])
+    subprocess.check_output(vlc_display_command + playlist_of_resources)
 
 
 # Download playlist JSON from XOS
@@ -102,14 +117,20 @@ try:
     for item in playlist:
         resource_url = item['resource']
         video_filename = os.path.basename(urlparse(resource_url).path)
+        local_video_path = 'resources/' + video_filename
         
-        if not os.path.isfile('resources/' + video_filename):
+        if not os.path.isfile(local_video_path):
             print(f'{video_filename} not available locally, attempting to download it now.')
             download_file(resource_url)
         
         # If it's now available locally, add it to the playlist to be played
-        if os.path.isfile('resources/' + video_filename):
-            vlc_playlist.append('resources/' + video_filename)
+        if os.path.isfile(local_video_path):
+            # TODO: An array of dicts that has the label_id and resource
+            item_dictionary = {
+                'id': item['label'],
+                'resource': local_video_path
+            }
+            vlc_playlist.append(item_dictionary)
 
 except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
@@ -117,16 +138,17 @@ except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e
 
 # Check if vlc can play the media in vlc_playlist
 try:
-    for video in vlc_playlist:
-        player = vlc.MediaPlayer(video)
+    for item in vlc_playlist:
+        video_resource = item['resource']
+        player = vlc.MediaPlayer(video_resource)
         media = player.get_media() 
         media.parse()
         if media.get_duration():
             # OK to play
             pass
         else:
-            print(f'Video doesn\'t seem playable: {video}, removing from the playlist.')
-            vlc_playlist.remove(video)
+            print(f'Video doesn\'t seem playable: {video_resource}, removing from the playlist.')
+            vlc_playlist.remove(item)
 except Exception as error:
     print(f'Video playback test failed with error {error}')
 
