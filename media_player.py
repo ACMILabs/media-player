@@ -22,11 +22,12 @@ TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 vlc_playlist = []  # An array of dictionaries with label id & resource
-queue_name = f'playback_{MEDIA_PLAYER_ID}'
+queue_name = f'mqtt-subscription-playback_{MEDIA_PLAYER_ID}'
+routing_key = f'mediaplayer.{MEDIA_PLAYER_ID}'
 
 # Playback messaging
-media_player_exchange = Exchange('media_player', 'direct', durable=True)
-playback_queue = Queue(queue_name, exchange=media_player_exchange, routing_key=queue_name)
+media_player_exchange = Exchange('amq.topic', 'direct', durable=True)
+playback_queue = Queue(queue_name, exchange=media_player_exchange, routing_key=routing_key)
 
 
 def datetime_now():
@@ -50,7 +51,7 @@ def post_playback_to_xos():
             for item in vlc_playlist:
                 item_filename = os.path.basename(urlparse(item['resource']).path)
                 if item_filename == currently_playing_resource:
-                    currently_playing_label_id = int(item['id'])
+                    currently_playing_label_id = int(item['label']['id'])
 
             media_player_status_json = {
                 "datetime": datetime_now(),
@@ -65,13 +66,15 @@ def post_playback_to_xos():
             with Connection(AMQP_URL) as conn:
                 producer = conn.Producer(serializer='json')
                 producer.publish(media_player_status_json,
-                                exchange=media_player_exchange, routing_key=queue_name,
+                                exchange=media_player_exchange, routing_key=routing_key,
                                 declare=[playback_queue])
 
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            print(f'Failed to connect to {VLC_URL} with error: {e}')
+        except (KeyError, requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(e).__name__, e.args)
+            print(message)
         
-        time.sleep(int(TIME_BETWEEN_PLAYBACK_STATUS))
+        time.sleep(float(TIME_BETWEEN_PLAYBACK_STATUS))
 
 
 def download_file(url):
@@ -127,7 +130,7 @@ try:
         if os.path.isfile(local_video_path):
             # TODO: An array of dicts that has the label_id and resource
             item_dictionary = {
-                'id': item['label'],
+                'label': item['label'],
                 'resource': local_video_path
             }
             vlc_playlist.append(item_dictionary)
