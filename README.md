@@ -12,7 +12,7 @@ A media player prototype using Python to launch VLC.
 * Create a Playlist in XOS with resources.
 * Edit the `config.env` to point to the ID of your Playlist in Django.
 * Run `source config.env` to load environment variables.
-* Turn on the http server: VLC > Preferences > http web interface > tick the box & set a password.
+* Turn on the http server: VLC > Preferences > http web interface > tick the box & set the password you saved to `config.env`.
 * Run `python media_player.py`
 
 ## Installation on Windows
@@ -29,7 +29,7 @@ A media player prototype using Python to launch VLC.
   * Create a Playlist in XOS with resources.
   * Edit the `config.env` to point to the ID of your Playlist in Django.
   * Run `source config.env` to load environment variables.
-  * Turn on the http server: VLC > Preferences > http web interface > tick the box & set a password.
+  * Turn on the http server: VLC > Preferences > http web interface > tick the box & set the password you saved to `config.env`.
   * Run `python media_player.py`
 
 ### To make this autorun at startup:
