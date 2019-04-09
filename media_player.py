@@ -99,8 +99,8 @@ def download_file(url):
                             # f.flush()
             return local_filename
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            print(f'Failed to download the file {local_filename} with error {e}')
-    print(f'Tried to download {url} {DOWNLOAD_RETRIES} times, giving up.')
+            print('Failed to download the file %s with error %s' % (local_filename, e))
+    print('Tried to download %s %s times, giving up.' % (url, DOWNLOAD_RETRIES))
 
 
 def start_vlc():
@@ -127,7 +127,7 @@ try:
         local_video_path = 'resources/' + video_filename
         
         if not os.path.isfile(local_video_path):
-            print(f'{video_filename} not available locally, attempting to download it now.')
+            print('%s not available locally, attempting to download it now.' % (video_filename))
             download_file(resource_url)
         
         # If it's now available locally, add it to the playlist to be played
@@ -140,7 +140,7 @@ try:
             vlc_playlist.append(item_dictionary)
 
 except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-    print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
+    print('Failed to connect to %s with error: %s' % (XOS_PLAYLIST_ENDPOINT, e))
 
 
 # Check if vlc can play the media in vlc_playlist
@@ -154,10 +154,10 @@ try:
             # OK to play
             pass
         else:
-            print(f'Video doesn\'t seem playable: {video_resource}, removing from the playlist.')
+            print('Video doesn\'t seem playable: %s, removing from the playlist.' % (video_resource))
             vlc_playlist.remove(item)
 except Exception as error:
-    print(f'Video playback test failed with error {error}')
+    print('Video playback test failed with error %s' % (error))
 
 
 vlc_thread = Thread(target=start_vlc)
