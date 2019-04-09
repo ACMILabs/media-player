@@ -2,3 +2,4 @@ pytz
 requests
 kombu
 librabbitmq
+vlc
