@@ -86,6 +86,10 @@ def download_file(url):
             response = requests.head(url, allow_redirects=True)
             response.raise_for_status()
 
+            # Make the resources directory if it doesn't exist
+            if not os.path.exists('resources'):
+                os.makedirs('resources')
+
             # NOTE the stream=True parameter below
             with requests.get(url, stream=True) as r:
                 with open('resources/' + local_filename, 'wb') as f:
