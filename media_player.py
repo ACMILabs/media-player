@@ -22,8 +22,8 @@ TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 vlc_playlist = []  # An array of dictionaries with label id & resource
-queue_name = f'mqtt-subscription-playback_{MEDIA_PLAYER_ID}'
-routing_key = f'mediaplayer.{MEDIA_PLAYER_ID}'
+queue_name = 'mqtt-subscription-playback_%s' % (MEDIA_PLAYER_ID)
+routing_key = 'mediaplayer.%s' % (MEDIA_PLAYER_ID)
 
 # Playback messaging
 media_player_exchange = Exchange('amq.topic', 'direct', durable=True)
