@@ -20,6 +20,7 @@ AMQP_URL = os.getenv('AMQP_URL')
 VLC_URL = os.getenv('VLC_URL')
 VLC_PASSWORD = os.getenv('VLC_PASSWORD')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
+USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 vlc_playlist = []  # An array of dictionaries with label id & resource
@@ -119,12 +120,22 @@ def generate_pls_playlist():
         return None
 
 
+def generate_playlist():
+    # Generates a list of files to hand into the VLC call
+    playlist = []
+    for item in vlc_playlist:
+        playlist.append(item['resource'])
+    return playlist
+
+
 def start_vlc():
     # TODO: Use vlc python bindings.
     # Play the playlist in vlc
     print('Starting VLC...')
     vlc_display_command = ['vlc', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--extraintf', 'http', '--http-password', VLC_PASSWORD]
-    playlist = [generate_pls_playlist()]
+    playlist = generate_playlist()
+    if int(USE_PLS_PLAYLIST) == 1:
+        playlist = [generate_pls_playlist()]
     subprocess.check_output(vlc_display_command + playlist)
 
 
