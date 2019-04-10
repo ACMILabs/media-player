@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+from pathlib import Path
 import requests
 import subprocess
 from threading import Thread
@@ -103,15 +104,28 @@ def download_file(url):
     print('Tried to download %s %s times, giving up.' % (url, DOWNLOAD_RETRIES))
 
 
+def generate_pls_playlist():
+    # Generates a playlist.pls file and returns the filename
+    pls_filename = 'resources/playlist.pls'
+    pls_string = '[playlist]\n'
+    for idx, item in enumerate(vlc_playlist, start=1):
+        pls_string += (f"File{idx + 1}={item['resource'].split('/')[-1]}\n")
+    pls_string += f'NumberOfEntries={len(vlc_playlist)}\nVersion=2'
+    with open(pls_filename, 'w') as f:
+        f.write(pls_string)
+    if Path(pls_filename).exists():
+        return pls_filename
+    else:
+        return None
+
+
 def start_vlc():
     # TODO: Use vlc python bindings.
     # Play the playlist in vlc
     print('Starting VLC...')
-    vlc_display_command = ['vlc', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top']
-    playlist_of_resources = []
-    for item in vlc_playlist:
-        playlist_of_resources.append(item['resource'])
-    subprocess.check_output(vlc_display_command + playlist_of_resources)
+    vlc_display_command = ['vlc', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--extraintf', 'http', '--http-password', VLC_PASSWORD]
+    playlist = [generate_pls_playlist()]
+    subprocess.check_output(vlc_display_command + playlist)
 
 
 # Download playlist JSON from XOS
