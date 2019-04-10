@@ -109,8 +109,8 @@ def generate_pls_playlist():
     pls_filename = 'resources/playlist.pls'
     pls_string = '[playlist]\n'
     for idx, item in enumerate(vlc_playlist, start=1):
-        pls_string += (f"File{idx + 1}={item['resource'].split('/')[-1]}\n")
-    pls_string += f'NumberOfEntries={len(vlc_playlist)}\nVersion=2'
+        pls_string += ('File%s=%s\n' % (idx + 1, item['resource'].split('/')[-1]))
+    pls_string += 'NumberOfEntries=%s\nVersion=2' % (len(vlc_playlist))
     with open(pls_filename, 'w') as f:
         f.write(pls_string)
     if Path(pls_filename).exists():
