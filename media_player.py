@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import os
 from pathlib import Path
 import requests
@@ -8,8 +9,8 @@ import time
 from urllib.parse import urlparse
 
 from kombu import Connection, Exchange, Queue
+from omxplayer.player import OMXPlayer
 import pytz
-import vlc
 
 
 XOS_PLAYLIST_ENDPOINT = os.getenv('XOS_PLAYLIST_ENDPOINT')
@@ -23,7 +24,7 @@ TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
 USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST')
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
-vlc_playlist = []  # An array of dictionaries with label id & resource
+media_playlist = []  # An array of dictionaries with label id & resource
 queue_name = f'mqtt-subscription-playback_{MEDIA_PLAYER_ID}'
 routing_key = f'mediaplayer.{MEDIA_PLAYER_ID}'
 
@@ -46,11 +47,11 @@ def post_playback_to_xos():
             response.raise_for_status()
             vlc_status = response.json()
 
-            # Match playback filename with label id in vlc_playlist
+            # Match playback filename with label id in media_playlist
             playback_position = vlc_status['position']
             currently_playing_label_id = None
             currently_playing_resource = os.path.basename(urlparse(vlc_status['information']['category']['meta']['filename']).path)
-            for item in vlc_playlist:
+            for item in media_playlist:
                 item_filename = os.path.basename(urlparse(item['resource']).path)
                 if item_filename == currently_playing_resource:
                     currently_playing_label_id = int(item['label']['id'])
@@ -109,9 +110,9 @@ def generate_pls_playlist():
     # Generates a playlist.pls file and returns the filename
     pls_filename = 'resources/playlist.pls'
     pls_string = '[playlist]\n'
-    for idx, item in enumerate(vlc_playlist, start=1):
+    for idx, item in enumerate(media_playlist, start=1):
         pls_string += (f"File{idx + 1}={item['resource'].split('/')[-1]}\n")
-    pls_string += f'NumberOfEntries={len(vlc_playlist)}\nVersion=2'
+    pls_string += f'NumberOfEntries={len(media_playlist)}\nVersion=2'
     with open(pls_filename, 'w') as f:
         f.write(pls_string)
     if Path(pls_filename).exists():
@@ -123,20 +124,30 @@ def generate_pls_playlist():
 def generate_playlist():
     # Generates a list of files to hand into the VLC call
     playlist = []
-    for item in vlc_playlist:
+    for item in media_playlist:
         playlist.append(item['resource'])
     return playlist
 
 
-def start_vlc():
-    # TODO: Use vlc python bindings.
-    # Play the playlist in vlc
-    print('Starting VLC...')
-    vlc_display_command = ['vlc', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--extraintf', 'http', '--http-password', VLC_PASSWORD]
+def start_media_player():
     playlist = generate_playlist()
     if int(USE_PLS_PLAYLIST) == 1:
         playlist = [generate_pls_playlist()]
-    subprocess.check_output(vlc_display_command + playlist)
+
+    # Play the playlist in omxplayer
+    print('Starting Omxplayer...')
+    player_log = logging.getLogger("Media player 1")
+    # TODO: Fix multiple file playing
+    # import ipdb; ipdb.set_trace()
+    player = OMXPlayer(Path('resources'), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
+    player.playEvent += lambda _: player_log.info("Play")
+    player.pauseEvent += lambda _: player_log.info("Pause")
+    player.stopEvent += lambda _: player_log.info("Stop")
+    # it takes about this long for omxplayer to warm up and start displaying a picture on a rpi3
+    time.sleep(2.5)
+    player.set_aspect_mode('stretch')
+    player.set_video_pos(0, 0, 200, 200)
+    player.play()
 
 
 # Download playlist JSON from XOS
@@ -162,34 +173,17 @@ try:
                 'label': item['label'],
                 'resource': local_video_path
             }
-            vlc_playlist.append(item_dictionary)
+            media_playlist.append(item_dictionary)
 
 except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
 
 
-# Check if vlc can play the media in vlc_playlist
-try:
-    for item in vlc_playlist:
-        video_resource = item['resource']
-        player = vlc.MediaPlayer(video_resource)
-        media = player.get_media() 
-        media.parse()
-        if media.get_duration():
-            # OK to play
-            pass
-        else:
-            print(f'Video doesn\'t seem playable: {video_resource}, removing from the playlist.')
-            vlc_playlist.remove(item)
-except Exception as error:
-    print(f'Video playback test failed with error {error}')
+media_player_thread = Thread(target=start_media_player)
+media_player_thread.start()
 
-
-vlc_thread = Thread(target=start_vlc)
-vlc_thread.start()
-
-# Wait for VLC to launch
+# Wait for Media Player to launch
 time.sleep(5)
 
-playback_time_thread = Thread(target=post_playback_to_xos)
-playback_time_thread.start()
+# playback_time_thread = Thread(target=post_playback_to_xos)
+# playback_time_thread.start()
