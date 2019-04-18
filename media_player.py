@@ -38,6 +38,7 @@ def datetime_now():
 
 
 def post_playback_to_xos():
+    # TODO: Convert to dbus call
     while True:
         try:
             # Get playback status from VLC
