@@ -140,7 +140,7 @@ def start_media_player():
     player_log = logging.getLogger("Media player 1")
     # TODO: Fix multiple file playing
     # import ipdb; ipdb.set_trace()
-    player = OMXPlayer(Path('resources'), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
+    player = OMXPlayer(Path(playlist[0]), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
     # player.playEvent += lambda _: player_log.info("Play")
     # player.pauseEvent += lambda _: player_log.info("Pause")
     # player.stopEvent += lambda _: player_log.info("Stop")
