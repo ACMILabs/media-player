@@ -147,7 +147,6 @@ def start_media_player():
     # it takes about this long for omxplayer to warm up and start displaying a picture on a rpi3
     time.sleep(2.5)
     player.set_aspect_mode('stretch')
-    player.set_video_pos(0, 0, 200, 200)
     player.play()
 
 
@@ -180,9 +179,8 @@ except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
 
 
-start_media_player()
-# media_player_thread = Thread(target=start_media_player)
-# media_player_thread.start()
+media_player_thread = Thread(target=start_media_player)
+media_player_thread.start()
 
 # Wait for Media Player to launch
 time.sleep(5)
