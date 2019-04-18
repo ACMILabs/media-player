@@ -4,12 +4,16 @@ FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3-stretch-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages g++ build-essential git omxplayer pkg-config libdbus-1-dev libdbus-glib-1-dev
+RUN install_packages g++
 
 ENV PYTHONUNBUFFERED 1
 
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install -Ur /code/requirements.txt
+
+# OMXPlayer packages
+RUN install_packages build-essential git omxplayer pkg-config libdbus-1-dev libdbus-glib-1-dev
+RUN pip install -U omxplayer-wrapper
 
 COPY . /code/
 WORKDIR /code/

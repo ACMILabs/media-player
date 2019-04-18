@@ -2,4 +2,3 @@ pytz
 requests
 kombu
 librabbitmq
-omxplayer-wrapper
