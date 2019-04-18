@@ -8,11 +8,12 @@ RUN install_packages g++
 
 ENV PYTHONUNBUFFERED 1
 
-COPY ./requirements.txt /code/requirements.txt
+COPY ./base-requirements.txt /code/base-requirements.txt
 RUN pip install -Ur /code/base-requirements.txt
 
 # OMXPlayer packages
 RUN install_packages build-essential git omxplayer pkg-config libdbus-1-dev libdbus-glib-1-dev
+COPY ./player-requirements.txt /code/player-requirements.txt
 RUN pip install -Ur /code/player-requirements.txt
 
 COPY . /code/
