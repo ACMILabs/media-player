@@ -1,4 +1,0 @@
-pytz
-requests
-kombu
-librabbitmq
