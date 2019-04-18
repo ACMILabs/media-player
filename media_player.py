@@ -141,9 +141,9 @@ def start_media_player():
     # TODO: Fix multiple file playing
     # import ipdb; ipdb.set_trace()
     player = OMXPlayer(Path('resources'), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
-    player.playEvent += lambda _: player_log.info("Play")
-    player.pauseEvent += lambda _: player_log.info("Pause")
-    player.stopEvent += lambda _: player_log.info("Stop")
+    # player.playEvent += lambda _: player_log.info("Play")
+    # player.pauseEvent += lambda _: player_log.info("Pause")
+    # player.stopEvent += lambda _: player_log.info("Stop")
     # it takes about this long for omxplayer to warm up and start displaying a picture on a rpi3
     time.sleep(2.5)
     player.set_aspect_mode('stretch')
