@@ -172,11 +172,9 @@ except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
 
 
-media_player_thread = Thread(target=start_media_player(omxplayer, 0))
-media_player_thread.start()
+start_media_player(omxplayer, 0)
 
 # Wait for Media Player to launch
 time.sleep(5)
 
-playback_time_thread = Thread(target=post_playback_to_xos(omxplayer))
-playback_time_thread.start()
+post_playback_to_xos(omxplayer)
