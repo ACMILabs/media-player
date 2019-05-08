@@ -62,7 +62,7 @@ class MediaPlayer():
                         currently_playing_label_id = int(item['label']['id'])
 
                 media_player_status_json = {
-                    "datetime": datetime_now_with_timezone_as_iso(),
+                    "datetime": self.datetime_now_with_timezone_as_iso(),
                     "playlist_id": int(PLAYLIST_ID),
                     "media_player_id": int(MEDIA_PLAYER_ID),
                     "label_id": currently_playing_label_id,
