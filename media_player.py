@@ -27,6 +27,7 @@ pytz_timezone = pytz.timezone('Australia/Melbourne')
 media_playlist = []  # An array of dictionaries with label id & resource
 queue_name = f'mqtt-subscription-playback_{MEDIA_PLAYER_ID}'
 routing_key = f'mediaplayer.{MEDIA_PLAYER_ID}'
+omxplayer = None
 
 # Playback messaging
 media_player_exchange = Exchange('amq.topic', 'direct', durable=True)
@@ -130,6 +131,10 @@ def generate_playlist():
     return playlist
 
 
+def restart_media_player(player, exit_status):
+    start_media_player()
+
+
 def start_media_player():
     playlist = generate_playlist()
     if int(USE_PLS_PLAYLIST) == 1:
@@ -141,14 +146,8 @@ def start_media_player():
     # TODO: Fix multiple file playing
     # import ipdb; ipdb.set_trace()
     for video in playlist:
-        player = OMXPlayer(Path(video), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
-        # player.playEvent += lambda _: player_log.info("Play")
-        # player.pauseEvent += lambda _: player_log.info("Pause")
-        # player.stopEvent += lambda _: player_log.info("Stop")
-        # it takes about this long for omxplayer to warm up and start displaying a picture on a rpi3
-        time.sleep(2.5)
-        player.set_aspect_mode('stretch')
-        player.play()
+        omxplayer.exitEvent = restart_media_player
+        omxplayer = OMXPlayer(Path(video), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
 
 
 # Download playlist JSON from XOS
