@@ -53,9 +53,9 @@ class MediaPlayer():
         while True:
             try:
                 # Match playback filename with label id in media_playlist
-                playback_position = omxplayer.position()
+                playback_position = self.omxplayer.position()
                 currently_playing_label_id = None
-                currently_playing_resource = os.path.basename(urlparse(str(omxplayer.get_filename())).path)
+                currently_playing_resource = os.path.basename(urlparse(str(self.omxplayer.get_filename())).path)
                 for item in self.playlist:
                     item_filename = os.path.basename(urlparse(item['resource']).path)
                     if item_filename == currently_playing_resource:
