@@ -38,21 +38,14 @@ def datetime_now():
     return datetime.now(pytz_timezone).isoformat()
 
 
-def post_playback_to_xos():
+def post_playback_to_xos(omxplayer):
     # TODO: Convert to dbus call
     while True:
         try:
-            # Get playback status from VLC
-            session = requests.Session()
-            session.auth = ('', VLC_PASSWORD)
-            response = session.get(VLC_URL + 'requests/status.json')
-            response.raise_for_status()
-            vlc_status = response.json()
-
             # Match playback filename with label id in media_playlist
-            playback_position = vlc_status['position']
+            playback_position = omxplayer.position()
             currently_playing_label_id = None
-            currently_playing_resource = os.path.basename(urlparse(vlc_status['information']['category']['meta']['filename']).path)
+            currently_playing_resource = os.path.basename(urlparse(str(omxplayer.get_filename())).path)
             for item in media_playlist:
                 item_filename = os.path.basename(urlparse(item['resource']).path)
                 if item_filename == currently_playing_resource:
@@ -135,7 +128,7 @@ def restart_media_player(player, exit_status):
     start_media_player()
 
 
-def start_media_player():
+def start_media_player(omxplayer):
     playlist = generate_playlist()
     if int(USE_PLS_PLAYLIST) == 1:
         playlist = [generate_pls_playlist()]
@@ -146,8 +139,10 @@ def start_media_player():
     # TODO: Fix multiple file playing
     # import ipdb; ipdb.set_trace()
     for video in playlist:
-        omxplayer.exitEvent = restart_media_player
         omxplayer = OMXPlayer(Path(video), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
+        omxplayer.exitEvent = restart_media_player
+        import ipdb; ipdb.set_trace()
+
 
 
 # Download playlist JSON from XOS
@@ -179,11 +174,11 @@ except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
 
 
-media_player_thread = Thread(target=start_media_player)
+media_player_thread = Thread(target=start_media_player(omxplayer))
 media_player_thread.start()
 
 # Wait for Media Player to launch
 time.sleep(5)
 
-# playback_time_thread = Thread(target=post_playback_to_xos)
-# playback_time_thread.start()
+playback_time_thread = Thread(target=post_playback_to_xos(omxplayer))
+playback_time_thread.start()
