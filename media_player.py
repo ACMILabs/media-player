@@ -51,7 +51,6 @@ class MediaPlayer():
 
 
     def post_playback_to_xos(self):
-        # TODO: Convert to dbus call
         while True:
             try:
                 # Match playback filename with label id in media_playlist
@@ -69,7 +68,6 @@ class MediaPlayer():
                     "media_player_id": int(MEDIA_PLAYER_ID),
                     "label_id": currently_playing_label_id,
                     "playback_position": playback_position
-                    #"vlc_status": vlc_status
                 }
 
                 # Publish to XOS broker
@@ -79,10 +77,15 @@ class MediaPlayer():
                                     exchange=media_player_exchange, routing_key=routing_key,
                                     declare=[playback_queue])
 
-            except (KeyError, requests.exceptions.HTTPError, requests.exceptions.ConnectionError, dbus.exceptions.DBusException, OMXPlayerDeadError) as e:
+            except (KeyError, requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
                 template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                 message = template.format(type(e).__name__, e.args)
                 print(message)
+
+            except (dbus.exceptions.DBusException, OMXPlayerDeadError) as e:
+                # These errors occur when asking for playback position
+                # while omxplayer is between playing videos.
+                pass
 
             time.sleep(float(TIME_BETWEEN_PLAYBACK_STATUS))
 
@@ -129,7 +132,7 @@ class MediaPlayer():
 
 
     def generate_playlist(self):
-        # Generates a list of files to hand into the VLC call
+        # Generates a list of files to hand into the media player
         playlist = []
         for item in self.playlist:
             playlist.append(item['resource'])
@@ -149,8 +152,6 @@ class MediaPlayer():
         # Play the playlist in omxplayer
         print(f'Playing video {self.current_playlist_position}: {text_playlist[self.current_playlist_position]}')
         player_log = logging.getLogger("Media player 1")
-        # TODO: Fix multiple file playing
-        # import ipdb; ipdb.set_trace()
         self.omxplayer = OMXPlayer(Path(text_playlist[self.current_playlist_position]), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
         self.omxplayer.exitEvent = self.restart_media_player
 
@@ -175,7 +176,7 @@ try:
         
         # If it's now available locally, add it to the playlist to be played
         if os.path.isfile(local_video_path):
-            # TODO: An array of dicts that has the label_id and resource
+            # An array of dicts that has the label_id and resource
             item_dictionary = {
                 'label': item['label'],
                 'resource': local_video_path
