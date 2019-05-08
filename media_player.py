@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from kombu import Connection, Exchange, Queue
 from omxplayer.player import OMXPlayer
+from omxplayer.player import OMXPlayerDeadError
 import pytz
 
 
@@ -78,7 +79,7 @@ class MediaPlayer():
                                     exchange=media_player_exchange, routing_key=routing_key,
                                     declare=[playback_queue])
 
-            except (KeyError, requests.exceptions.HTTPError, requests.exceptions.ConnectionError, dbus.exceptions.DBusException, OMXPlayer.OMXPlayerDeadError) as e:
+            except (KeyError, requests.exceptions.HTTPError, requests.exceptions.ConnectionError, dbus.exceptions.DBusException, OMXPlayerDeadError) as e:
                 template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                 message = template.format(type(e).__name__, e.args)
                 print(message)
