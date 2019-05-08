@@ -157,10 +157,10 @@ media_player = MediaPlayer()
 try:
     response = requests.get(XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID)
     response.raise_for_status()
-    media_player.playlist = response.json()['playlist_labels']
+    playlist_labels = response.json()['playlist_labels']
 
     # Download resource if it isn't available locally
-    for item in media_player.playlist:
+    for item in playlist_labels:
         resource_url = item['resource']
         video_filename = os.path.basename(urlparse(resource_url).path)
         local_video_path = 'resources/' + video_filename
