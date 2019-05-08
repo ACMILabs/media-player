@@ -139,7 +139,7 @@ class MediaPlayer():
         return playlist
 
 
-    def restart_media_player(self, player, exit_status):
+    def omxplayer_exit_event_callback(self, player, exit_status):
         self.current_playlist_position += 1
         if self.current_playlist_position >= len(self.playlist):
             self.current_playlist_position = 0
@@ -149,12 +149,14 @@ class MediaPlayer():
     def start_media_player(self):
         text_playlist = self.generate_playlist()
 
+        # TODO: Queue up all of the OMXPlayers, but only play the current one
+        # This should avoid the pause between them.
+
         # Play the playlist in omxplayer
         print(f'Playing video {self.current_playlist_position}: {text_playlist[self.current_playlist_position]}')
         player_log = logging.getLogger("Media player 1")
-        self.omxplayer = OMXPlayer(Path(text_playlist[self.current_playlist_position]), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
-        self.omxplayer.exitEvent = self.restart_media_player
-
+        self.omxplayer = OMXPlayer(Path(text_playlist[self.current_playlist_position]), dbus_name='au.net.acmi.omxplayer1')
+        self.omxplayer.exitEvent = self.omxplayer_exit_event_callback
 
 
 # Download playlist JSON from XOS
