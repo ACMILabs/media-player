@@ -28,6 +28,7 @@ media_playlist = []  # An array of dictionaries with label id & resource
 queue_name = f'mqtt-subscription-playback_{MEDIA_PLAYER_ID}'
 routing_key = f'mediaplayer.{MEDIA_PLAYER_ID}'
 omxplayer = None
+current_playlist_position = 0
 
 # Playback messaging
 media_player_exchange = Exchange('amq.topic', 'direct', durable=True)
@@ -125,23 +126,20 @@ def generate_playlist():
 
 
 def restart_media_player(player, exit_status):
-    start_media_player()
+    current_playlist_position += 1
+    start_media_player(omxplayer, current_playlist_position)
 
 
-def start_media_player(omxplayer):
+def start_media_player(omxplayer, position):
     playlist = generate_playlist()
-    if int(USE_PLS_PLAYLIST) == 1:
-        playlist = [generate_pls_playlist()]
 
     # Play the playlist in omxplayer
-    print('Starting Omxplayer...')
+    print(f'Playing video {position}: {playlist[position]}')
     player_log = logging.getLogger("Media player 1")
     # TODO: Fix multiple file playing
     # import ipdb; ipdb.set_trace()
-    for video in playlist:
-        omxplayer = OMXPlayer(Path(video), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
-        omxplayer.exitEvent = restart_media_player
-        import ipdb; ipdb.set_trace()
+    omxplayer = OMXPlayer(Path(playlist[position]), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
+    omxplayer.exitEvent = restart_media_player
 
 
 
@@ -174,7 +172,7 @@ except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
 
 
-media_player_thread = Thread(target=start_media_player(omxplayer))
+media_player_thread = Thread(target=start_media_player(omxplayer, 0))
 media_player_thread.start()
 
 # Wait for Media Player to launch
