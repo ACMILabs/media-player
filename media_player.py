@@ -136,7 +136,7 @@ class MediaPlayer():
 
     def restart_media_player(self, player, exit_status):
         self.current_playlist_position += 1
-        if self.current_playlist_position > len(self.playlist):
+        if self.current_playlist_position >= len(self.playlist):
             self.current_playlist_position = 0
         self.start_media_player()
 
