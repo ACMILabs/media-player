@@ -39,7 +39,7 @@ def datetime_now():
     return datetime.now(pytz_timezone).isoformat()
 
 
-def post_playback_to_xos(omxplayer):
+def post_playback_to_xos():
     # TODO: Convert to dbus call
     while True:
         try:
@@ -127,18 +127,18 @@ def generate_playlist():
 
 def restart_media_player(player, exit_status):
     current_playlist_position += 1
-    start_media_player(omxplayer, current_playlist_position)
+    start_media_player()
 
 
-def start_media_player(omxplayer, position):
+def start_media_player():
     playlist = generate_playlist()
 
     # Play the playlist in omxplayer
-    print(f'Playing video {position}: {playlist[position]}')
+    print(f'Playing video {current_playlist_position}: {playlist[current_playlist_position]}')
     player_log = logging.getLogger("Media player 1")
     # TODO: Fix multiple file playing
     # import ipdb; ipdb.set_trace()
-    omxplayer = OMXPlayer(Path(playlist[position]), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
+    omxplayer = OMXPlayer(Path(playlist[current_playlist_position]), dbus_name='org.mpris.MediaPlayer2.omxplayer1')
     omxplayer.exitEvent = restart_media_player
 
 
@@ -172,9 +172,9 @@ except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
 
 
-start_media_player(omxplayer, 0)
+start_media_player()
 
 # Wait for Media Player to launch
 time.sleep(5)
 
-post_playback_to_xos(omxplayer)
+post_playback_to_xos()
