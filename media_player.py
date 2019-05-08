@@ -140,7 +140,7 @@ class MediaPlayer():
 
 
     def start_media_player(self):
-        text_playlist = generate_playlist()
+        text_playlist = self.generate_playlist()
 
         # Play the playlist in omxplayer
         print(f'Playing video {self.current_playlist_position}: {text_playlist[self.current_playlist_position]}')
