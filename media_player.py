@@ -56,7 +56,7 @@ class MediaPlayer():
                 # Match playback filename with label id in media_playlist
                 playback_position = self.omxplayer.position()
                 currently_playing_label_id = None
-                currently_playing_resource = os.path.basename(urlparse(str(self.omxplayer.get_filename())).path)
+                currently_playing_resource = os.path.basename(urlparse(str(self.omxplayer.get_source())).path)
                 for item in self.playlist:
                     item_filename = os.path.basename(urlparse(item['resource']).path)
                     if item_filename == currently_playing_resource:
@@ -154,8 +154,8 @@ class MediaPlayer():
 
         # Play the playlist in omxplayer
         print(f'Playing video {self.current_playlist_position}: {text_playlist[self.current_playlist_position]}')
-        player_log = logging.getLogger("Media player 1")
-        self.omxplayer = OMXPlayer(Path(text_playlist[self.current_playlist_position]), dbus_name='au.net.acmi.omxplayer1')
+        player_log = logging.getLogger(f'Media player {MEDIA_PLAYER_ID}')
+        self.omxplayer = OMXPlayer(Path(text_playlist[self.current_playlist_position]), dbus_name=f'au.net.acmi.omxplayer{MEDIA_PLAYER_ID}_1')
         self.omxplayer.exitEvent = self.omxplayer_exit_event_callback
 
 
