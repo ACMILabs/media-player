@@ -84,16 +84,13 @@ def download_file(url):
         try:
             local_filename = url.split('/')[-1]
 
-            # Does the remote file exist?
-            response = requests.head(url, allow_redirects=True)
-            response.raise_for_status()
-
             # Make the resources directory if it doesn't exist
             if not os.path.exists('resources'):
                 os.makedirs('resources')
 
             # NOTE the stream=True parameter below
             with requests.get(url, stream=True) as r:
+                r.raise_for_status()
                 with open('resources/' + local_filename, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192): 
                         if chunk: # filter out keep-alive new chunks
