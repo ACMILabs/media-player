@@ -82,7 +82,7 @@ def post_playback_to_xos():
 def download_file(url):
     for _ in range(DOWNLOAD_RETRIES):
         try:
-            local_filename = url.split('/')[-1]
+            local_filename = urlparse(url).path.split('/')[-1]
 
             # Make the resources directory if it doesn't exist
             if not os.path.exists('resources'):
