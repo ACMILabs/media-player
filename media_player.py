@@ -64,6 +64,8 @@ def post_playback_to_xos():
                 #"vlc_status": vlc_status
             }
 
+            print(media_player_status_json)
+
             # Publish to XOS broker
             with Connection(AMQP_URL) as conn:
                 producer = conn.Producer(serializer='json')
