@@ -4,7 +4,7 @@ FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3.7.2-stretch-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc g++ xserver-xorg xinit lxsession
+RUN install_packages vlc g++ xserver-xorg xinit lxsession unclutter
 
 ENV PYTHONUNBUFFERED 1
 
@@ -22,5 +22,5 @@ COPY . /code/
 WORKDIR /code/
 
 # main.py will run when container starts up on the device
-# CMD ["bash","scripts/pi.sh"]
-CMD ["bash"]
+# CMD ["bash"]
+CMD ["bash","scripts/pi.sh"]

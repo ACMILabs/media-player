@@ -10,4 +10,7 @@ sleep 2
 startx &
 sleep 2
 
+# Hide the cursor
+unclutter -display :0 -idle 0.1 &
+
 python media_player.py
