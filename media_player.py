@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 from kombu import Connection, Exchange, Queue
 import pytz
+import sentry_sdk
 import vlc
 
 
@@ -21,6 +22,10 @@ VLC_URL = os.getenv('VLC_URL')
 VLC_PASSWORD = os.getenv('VLC_PASSWORD')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
 USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST')
+SENTRY_ID = os.getenv('SENTRY_ID')
+
+# Setup Sentry
+sentry_sdk.init(SENTRY_ID)
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 vlc_playlist = []  # An array of dictionaries with label id & resource
@@ -77,6 +82,7 @@ def post_playback_to_xos():
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
             message = template.format(type(e).__name__, e.args)
             print(message)
+            sentry_sdk.capture_exception(e)
         
         time.sleep(float(TIME_BETWEEN_PLAYBACK_STATUS))
 
@@ -101,6 +107,7 @@ def download_file(url):
             return local_filename
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
             print(f'Failed to download the file {local_filename} with error {e}')
+            sentry_sdk.capture_exception(e)
     print(f'Tried to download {url} {DOWNLOAD_RETRIES} times, giving up.')
 
 
@@ -165,6 +172,7 @@ try:
 
 except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
+    sentry_sdk.capture_exception(e)
 
 
 # Check if vlc can play the media in vlc_playlist
@@ -182,6 +190,7 @@ try:
             vlc_playlist.remove(item)
 except Exception as error:
     print(f'Video playback test failed with error {error}')
+    sentry_sdk.capture_exception(e)
 
 
 vlc_thread = Thread(target=start_vlc)
