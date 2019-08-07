@@ -135,14 +135,20 @@ def generate_playlist():
 
 
 def start_vlc():
-    # TODO: Use vlc python bindings.
-    # Play the playlist in vlc
-    print('Starting VLC...')
-    vlc_display_command = ['vlc', '--x11-display', ':0', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--extraintf', 'http', '--http-password', VLC_PASSWORD]
-    playlist = generate_playlist()
-    if int(USE_PLS_PLAYLIST) == 1:
-        playlist = [generate_pls_playlist()]
-    subprocess.check_output(vlc_display_command + playlist)
+    try:
+        # TODO: Use vlc python bindings.
+        # Play the playlist in vlc
+        print('Starting VLC...')
+        vlc_display_command = ['vlc', '--x11-display', ':0', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--extraintf', 'http', '--http-password', VLC_PASSWORD]
+        playlist = generate_playlist()
+        if int(USE_PLS_PLAYLIST) == 1:
+            playlist = [generate_pls_playlist()]
+        subprocess.check_output(vlc_display_command + playlist)
+    except subprocess.CalledProcessError as e:
+        template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+        message = template.format(type(e).__name__, e.args)
+        print(message)
+        sentry_sdk.capture_exception(e)
 
 
 # Download playlist JSON from XOS
