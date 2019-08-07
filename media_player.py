@@ -188,8 +188,8 @@ try:
         else:
             print(f'Video doesn\'t seem playable: {video_resource}, removing from the playlist.')
             vlc_playlist.remove(item)
-except Exception as error:
-    print(f'Video playback test failed with error {error}')
+except Exception as e:
+    print(f'Video playback test failed with error {e}')
     sentry_sdk.capture_exception(e)
 
 
