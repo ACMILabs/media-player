@@ -22,6 +22,10 @@ VLC_URL = os.getenv('VLC_URL')
 VLC_PASSWORD = os.getenv('VLC_PASSWORD')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
 USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST')
+BALENA_APP_ID = os.getenv('BALENA_APP_ID')
+BALENA_SERVICE_NAME = os.getenv('BALENA_SERVICE_NAME')
+BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
+BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 SENTRY_ID = os.getenv('SENTRY_ID')
 
 # Setup Sentry
@@ -81,8 +85,30 @@ def post_playback_to_xos():
             message = template.format(type(e).__name__, e.args)
             print(message)
             sentry_sdk.capture_exception(e)
+
+        except (Exception, TimeoutError) as e:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(e).__name__, e.args)
+            print(message)
+            sentry_sdk.capture_exception(e)
+
+            restart_app_container()
         
         time.sleep(float(TIME_BETWEEN_PLAYBACK_STATUS))
+
+
+def restart_app_container():
+    try:
+        balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
+        json = {
+            "serviceName": BALENA_SERVICE_NAME
+        }
+        response = requests.post(balena_api_url, json=json)
+        response.raise_for_status()
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+        message = f'Failed to restart the Media Player container with error: {e}'
+        print(message)
+        sentry_sdk.capture_exception(e)
 
 
 def download_file(url):
