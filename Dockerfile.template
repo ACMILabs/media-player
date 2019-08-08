@@ -4,7 +4,37 @@ FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3.7.2-stretch-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc g++ xserver-xorg xinit lxsession unclutter
+RUN install_packages \
+  vlc \
+  g++ \
+  dbus \
+  dbus-x11 \
+  xserver-xorg-core \
+  xserver-xorg-input-all \
+  xserver-xorg-video-fbdev \
+  xorg \
+  libxcb-image0 \
+  libxcb-util0 \
+  xdg-utils \
+  libdbus-1-3 \
+  libgtk2.0 \
+  libnotify4 \
+  libgnome-keyring0 \
+  libgconf-2-4 \
+  libasound2 \
+  libcap2 \
+  libcups2 \
+  libxtst6 \
+  libxss1 \
+  libnss3 \
+  libsmbclient \
+  libssh-4 \
+  fbset \
+  libexpat1
+
+RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
+  && echo "" >> /etc/X11/xinit/xserverrc \
+  && echo 'exec /usr/bin/X -s 0 dpms -nocursor -nolisten tcp "$@"' >> /etc/X11/xinit/xserverrc
 
 ENV PYTHONUNBUFFERED 1
 
