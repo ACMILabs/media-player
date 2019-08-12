@@ -5,7 +5,7 @@ FROM balenalib/i386-ubuntu-python:3.7.2-build
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc gcc g++ xserver-xorg xinit lxsession unclutter librabbitmq-dev rabbitmq-server
+RUN install_packages vlc gcc g++ xserver-xorg xinit lxsession unclutter librabbitmq-dev rabbitmq-server python3-dev
 
 ENV PYTHONUNBUFFERED 1
 
