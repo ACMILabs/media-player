@@ -1,11 +1,11 @@
 # base-image for python on any machine using a template variable,
 # see more about dockerfile templates here: https://www.balena.io/docs/learn/develop/dockerfile/
 # FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3.7.2-stretch-run
-FROM balenalib/i386-ubuntu-python:3.7.2-build
+FROM balenalib/i386-ubuntu-python:3.7.2-stretch-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc gcc g++ xserver-xorg xinit lxsession unclutter librabbitmq-dev rabbitmq-server python3-dev
+RUN install_packages vlc g++ xserver-xorg xinit lxsession unclutter
 
 ENV PYTHONUNBUFFERED 1
 
