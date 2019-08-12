@@ -3,3 +3,4 @@ requests
 kombu
 librabbitmq
 python-vlc
+sentry-sdk

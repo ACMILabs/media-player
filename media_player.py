@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 from kombu import Connection, Exchange, Queue
 import pytz
+import sentry_sdk
 import vlc
 
 
@@ -21,6 +22,14 @@ VLC_URL = os.getenv('VLC_URL')
 VLC_PASSWORD = os.getenv('VLC_PASSWORD')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
 USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST')
+BALENA_APP_ID = os.getenv('BALENA_APP_ID')
+BALENA_SERVICE_NAME = os.getenv('BALENA_SERVICE_NAME')
+BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
+BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
+SENTRY_ID = os.getenv('SENTRY_ID')
+
+# Setup Sentry
+sentry_sdk.init(SENTRY_ID)
 
 pytz_timezone = pytz.timezone('Australia/Melbourne')
 vlc_playlist = []  # An array of dictionaries with label id & resource
@@ -64,8 +73,6 @@ def post_playback_to_xos():
                 #"vlc_status": vlc_status
             }
 
-            print(media_player_status_json)
-
             # Publish to XOS broker
             with Connection(AMQP_URL) as conn:
                 producer = conn.Producer(serializer='json')
@@ -77,8 +84,31 @@ def post_playback_to_xos():
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
             message = template.format(type(e).__name__, e.args)
             print(message)
+            sentry_sdk.capture_exception(e)
+
+        except (Exception, TimeoutError) as e:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(e).__name__, e.args)
+            print(message)
+            sentry_sdk.capture_exception(e)
+
+            restart_app_container()
         
         time.sleep(float(TIME_BETWEEN_PLAYBACK_STATUS))
+
+
+def restart_app_container():
+    try:
+        balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
+        json = {
+            "serviceName": BALENA_SERVICE_NAME
+        }
+        response = requests.post(balena_api_url, json=json)
+        response.raise_for_status()
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+        message = f'Failed to restart the Media Player container with error: {e}'
+        print(message)
+        sentry_sdk.capture_exception(e)
 
 
 def download_file(url):
@@ -101,6 +131,7 @@ def download_file(url):
             return local_filename
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
             print(f'Failed to download the file {local_filename} with error {e}')
+            sentry_sdk.capture_exception(e)
     print(f'Tried to download {url} {DOWNLOAD_RETRIES} times, giving up.')
 
 
@@ -128,14 +159,20 @@ def generate_playlist():
 
 
 def start_vlc():
-    # TODO: Use vlc python bindings.
-    # Play the playlist in vlc
-    print('Starting VLC...')
-    vlc_display_command = ['vlc', '--x11-display', ':0', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--extraintf', 'http', '--http-password', VLC_PASSWORD]
-    playlist = generate_playlist()
-    if int(USE_PLS_PLAYLIST) == 1:
-        playlist = [generate_pls_playlist()]
-    subprocess.check_output(vlc_display_command + playlist)
+    try:
+        # TODO: Use vlc python bindings.
+        # Play the playlist in vlc
+        print('Starting VLC...')
+        vlc_display_command = ['vlc', '--x11-display', ':0', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--extraintf', 'http', '--http-password', VLC_PASSWORD]
+        playlist = generate_playlist()
+        if int(USE_PLS_PLAYLIST) == 1:
+            playlist = [generate_pls_playlist()]
+        subprocess.check_output(vlc_display_command + playlist)
+    except subprocess.CalledProcessError as e:
+        template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+        message = template.format(type(e).__name__, e.args)
+        print(message)
+        sentry_sdk.capture_exception(e)
 
 
 # Download playlist JSON from XOS
@@ -165,6 +202,7 @@ try:
 
 except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
     print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
+    sentry_sdk.capture_exception(e)
 
 
 # Check if vlc can play the media in vlc_playlist
@@ -180,8 +218,9 @@ try:
         else:
             print(f'Video doesn\'t seem playable: {video_resource}, removing from the playlist.')
             vlc_playlist.remove(item)
-except Exception as error:
-    print(f'Video playback test failed with error {error}')
+except Exception as e:
+    print(f'Video playback test failed with error {e}')
+    sentry_sdk.capture_exception(e)
 
 
 vlc_thread = Thread(target=start_vlc)
