@@ -17,7 +17,6 @@ RUN install_packages vlc vlc-plugin-* g++ \
   xterm \
   # Intel GPU drivers for VLC
   i965-va-driver \
-  libva-intel-vaapi-driver \
   vainfo
 
 # Disable screen from turning it off
