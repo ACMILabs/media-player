@@ -16,6 +16,8 @@ ENV UDEV 1
 ENV DISPLAY :0
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 
+COPY ./conf/20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
+
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install -Ur /code/requirements.txt
 
