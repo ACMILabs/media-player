@@ -3,21 +3,23 @@
 # Allow VLC to run under root
 sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
-# By default docker gives us 64MB of shared memory size but to display heavy
-# pages we need more.
-umount /dev/shm && mount -t tmpfs shm /dev/shm
+export DISPLAY=:0.0
+export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
-# Start X
-rm /tmp/.X0-lock &>/dev/null || true
-echo "Starting X in 2 seconds"
-sleep 2
-startx &
-sleep 20
+# rotate screen if env variable is set [normal, inverted, left or right]
+if [[ ! -z "$ROTATE_DISPLAY" ]]; then
+  echo "YES"
+  (sleep 3 && DISPLAY=:0 xrandr -o $ROTATE_DISPLAY) & 
+fi
 
-# Hide the cursor
-unclutter -display :0 -idle 0.1 &
+# start desktop manager
+echo "STARTING X"
+# startx
 
-# Set display
-export DISPLAY=:0
+# uncomment to start x without mouse cursor
+startx -- -nocursor &
+
+# uncomment to open an application instead of the desktop
+# startx xterm 
 
 python media_player.py

@@ -5,7 +5,24 @@ FROM balenalib/i386-ubuntu-python:3.7.2-bionic-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc g++ xserver-xorg xinit lxsession unclutter xserver-xorg-core xserver-xorg-video-modesetting xorg-video-abi-24 xserver-xorg-video-intel-hwe-18.04
+RUN install_packages vlc g++ \
+  xserver-xorg=1:7.7+19 \
+  xserver-xorg-input-evdev \
+  xinit \
+  xfce4 \
+  xfce4-terminal \
+  x11-xserver-utils \
+  dbus-x11 \
+  matchbox-keyboard \
+  xterm
+
+# Disable screen from turning it off
+RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
+  && echo "" >> /etc/X11/xinit/xserverrc \
+  && echo 'exec /usr/bin/X -s 0 dpms' >> /etc/X11/xinit/xserverrc
+
+# Avoid requesting XFCE4 question on X start
+ENV XFCE_PANEL_MIGRATE_DEFAULT=1
 
 ENV PYTHONUNBUFFERED 1
 
