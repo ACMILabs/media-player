@@ -163,7 +163,7 @@ def start_vlc():
         # TODO: Use vlc python bindings.
         # Play the playlist in vlc
         print('Starting VLC...')
-        vlc_display_command = ['vlc', '--x11-display', ':0', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--extraintf', 'http', '--http-password', VLC_PASSWORD]
+        vlc_display_command = ['vlc', '--x11-display', ':0', '--quiet', '--loop', '--fullscreen', '--no-random', '--no-video-title-show', '--video-on-top', '--no-osd' '--extraintf', 'http', '--http-password', VLC_PASSWORD]
         playlist = generate_playlist()
         if int(USE_PLS_PLAYLIST) == 1:
             playlist = [generate_pls_playlist()]

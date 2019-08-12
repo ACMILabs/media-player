@@ -5,7 +5,7 @@ FROM balenalib/i386-ubuntu-python:3.7.2-bionic-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc g++ xserver-xorg xinit lxsession unclutter
+RUN install_packages vlc g++ xserver-xorg xinit lxsession unclutter xorg-video-abi-24 xserver-xorg-video-intel-hwe-18.04
 
 ENV PYTHONUNBUFFERED 1
 
