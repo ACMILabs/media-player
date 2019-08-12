@@ -14,7 +14,11 @@ RUN install_packages vlc vlc-plugin-* g++ \
   x11-xserver-utils \
   dbus-x11 \
   matchbox-keyboard \
-  xterm
+  xterm \
+  # Intel GPU drivers for VLC
+  i965-va-driver \
+  libva-intel-vaapi-driver \
+  vainfo
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
