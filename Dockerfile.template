@@ -1,10 +1,30 @@
 # base-image for python on any machine using a template variable,
 # see more about dockerfile templates here: https://www.balena.io/docs/learn/develop/dockerfile/
-FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3.7.2-stretch-run
+FROM balenalib/i386-ubuntu-python:3.7.2-bionic-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc g++ xserver-xorg xinit lxsession unclutter
+RUN install_packages vlc vlc-plugin-* g++ \
+  xserver-xorg \
+  xserver-xorg-input-evdev \
+  xinit \
+  xfce4 \
+  xfce4-terminal \
+  x11-xserver-utils \
+  dbus-x11 \
+  matchbox-keyboard \
+  xterm \
+  # Intel GPU drivers for VLC
+  i965-va-driver \
+  vainfo
+
+# Disable screen from turning it off
+RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
+  && echo "" >> /etc/X11/xinit/xserverrc \
+  && echo 'exec /usr/bin/X -s 0 dpms' >> /etc/X11/xinit/xserverrc
+
+# Avoid requesting XFCE4 question on X start
+ENV XFCE_PANEL_MIGRATE_DEFAULT=1
 
 ENV PYTHONUNBUFFERED 1
 
@@ -14,6 +34,8 @@ ENV UDEV 1
 # Set dbus environment variables
 ENV DISPLAY :0
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
+
+COPY ./conf/20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
 
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install -Ur /code/requirements.txt
