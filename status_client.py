@@ -10,7 +10,7 @@ position_playlist_gauge = Gauge('position_playlist', 'Position in playlist')
 label_info = Info('label', 'Label')
 audio_buffer_gauge = Gauge('audio_buffer', 'Audio buffer')
 video_buffer_gauge = Gauge('video_buffer', 'Video buffer')
-player_volume_gauge = Gauge('player_volume', 'OMXPlayer volume')
+player_volume_gauge = Gauge('player_volume', 'VLC volume')
 system_volume_gauge = Gauge('system_volume', 'System volume')
 
 def set_status(uuid, device_name, filename, duration, playback_position,
