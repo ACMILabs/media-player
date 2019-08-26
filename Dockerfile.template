@@ -20,7 +20,8 @@ RUN install_packages vlc vlc-plugin-* g++ \
   # For system volume
   libasound2-dev \
   # Audio
-  pulseaudio
+  pulseaudio \
+  alsa-utils
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
