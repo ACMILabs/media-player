@@ -97,6 +97,8 @@ class MediaPlayer():
                     "media_player_id": int(MEDIA_PLAYER_ID),
                     "label_id": currently_playing_label_id,
                     "playback_position": playback_position,
+                    "dropped_audio_frames": dropped_audio_frames,
+                    "dropped_video_frames": dropped_video_frames,
                     "player_volume": player_volume,
                     "system_volume": system_volume,
                 }
@@ -109,8 +111,8 @@ class MediaPlayer():
                     media_player_status_json['playback_position'],
                     self.current_playlist_position,
                     media_player_status_json['label_id'],
-                    0, # TODO: Audio buffer
-                    0, # TODO: Video buffer
+                    media_player_status_json['dropped_audio_frames'],
+                    media_player_status_json['dropped_video_frames'],
                     media_player_status_json['player_volume'],
                     media_player_status_json['system_volume'],
                 )
