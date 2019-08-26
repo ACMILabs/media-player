@@ -84,8 +84,7 @@ class MediaPlayer():
                     "playlist_id": int(PLAYLIST_ID),
                     "media_player_id": int(MEDIA_PLAYER_ID),
                     "label_id": currently_playing_label_id,
-                    "playback_position": playback_position
-                    #"vlc_status": vlc_status
+                    "playback_position": playback_position,
                 }
 
                 # Publish to XOS broker
