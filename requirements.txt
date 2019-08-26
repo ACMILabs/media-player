@@ -4,3 +4,4 @@ kombu
 librabbitmq
 python-vlc
 sentry-sdk
+pyalsaaudio

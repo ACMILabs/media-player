@@ -7,6 +7,7 @@ from threading import Thread
 import time
 from urllib.parse import urlparse
 
+import alsaaudio
 from kombu import Connection, Exchange, Queue
 import pytz
 import sentry_sdk
@@ -79,12 +80,21 @@ class MediaPlayer():
                             self.current_playlist_position = idx
                             print(f'Playing video {self.current_playlist_position}: {self.generate_playlist()[self.current_playlist_position]}')
 
+                # Read the system volume
+                mixer = alsaaudio.Mixer(alsaaudio.mixers()[0])
+                system_volume = str(mixer.getvolume()[0] / 10) # System value 0-100
+
+                # Read the player volume
+                player_volume = str(vlc_status['volume'] / 256 * 10) # Player value 0-256
+
                 media_player_status_json = {
                     "datetime": self.datetime_now(),
                     "playlist_id": int(PLAYLIST_ID),
                     "media_player_id": int(MEDIA_PLAYER_ID),
                     "label_id": currently_playing_label_id,
                     "playback_position": playback_position,
+                    "player_volume": player_volume,
+                    "system_volume": system_volume,
                 }
 
                 # Publish to XOS broker
