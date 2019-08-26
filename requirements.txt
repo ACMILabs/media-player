@@ -5,3 +5,4 @@ librabbitmq
 python-vlc
 sentry-sdk
 pyalsaaudio
+prometheus_client
