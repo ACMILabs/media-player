@@ -109,6 +109,8 @@ class MediaPlayer():
                     media_player_status_json['playback_position'],
                     self.current_playlist_position,
                     media_player_status_json['label_id'],
+                    0, # TODO: Audio buffer
+                    0, # TODO: Video buffer
                     media_player_status_json['player_volume'],
                     media_player_status_json['system_volume'],
                 )
