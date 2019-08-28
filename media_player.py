@@ -286,6 +286,13 @@ class MediaPlayer():
             print(message)
             sentry_sdk.capture_exception(e)
 
+        except IndexError as e:
+            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+            message = template.format(type(e).__name__, e.args)
+            print(message)
+            print(f'Playlist seems to be empty: {playlist}')
+            sentry_sdk.capture_exception(e)
+
 
 # Download playlist JSON from XOS
 media_player = MediaPlayer()
