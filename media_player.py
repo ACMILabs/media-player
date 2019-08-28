@@ -131,22 +131,22 @@ class MediaPlayer():
                                     declare=[playback_queue])
 
             except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+                self.vlc_connection_attempts += 1
                 if self.vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
                     template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                     message = template.format(type(e).__name__, e.args)
                     print(message)
                     print(f'Can\'t connect to VLC player. Attempt {self.vlc_connection_attempts}')
                     sentry_sdk.capture_exception(e)
-                self.vlc_connection_attempts += 1
 
             except (KeyError) as e:
+                self.vlc_connection_attempts += 1
                 if self.vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
                     template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                     message = template.format(type(e).__name__, e.args)
                     print(message)
                     print(f'Current vlc_status: {vlc_status}')
                     sentry_sdk.capture_exception(e)
-                self.vlc_connection_attempts += 1
 
             except (Exception, TimeoutError) as e:
                 template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
