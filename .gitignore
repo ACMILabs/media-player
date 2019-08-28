@@ -1,6 +1,8 @@
 config.env
-resources
+resources/*
 !resources/example.mp4
+!resources/acmi-1920x1080.png
+!resources/blank-1920x1080.png
 .DS_Store
 .venv
 

@@ -22,6 +22,9 @@ startx &
 # uncomment to open an application instead of the desktop
 # startx xterm 
 
+# Set X background image
+xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/workspace0/last-image --set /code/resources/acmi-1920x1080.png
+
 # Unmute system audio
 amixer -c 0 set Master playback 100% unmute
 
