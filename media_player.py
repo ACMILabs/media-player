@@ -18,7 +18,7 @@ import vlc
 XOS_PLAYLIST_ENDPOINT = os.getenv('XOS_PLAYLIST_ENDPOINT')
 PLAYLIST_ID = os.getenv('PLAYLIST_ID')
 MEDIA_PLAYER_ID = os.getenv('MEDIA_PLAYER_ID')
-DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES'))
+DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
 VLC_URL = os.getenv('VLC_URL')
 VLC_PASSWORD = os.getenv('VLC_PASSWORD')
@@ -32,6 +32,7 @@ BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
 BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 SENTRY_ID = os.getenv('SENTRY_ID')
 SUBTITLES = os.getenv('SUBTITLES', 'true')
+VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', DOWNLOAD_RETRIES))
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -51,10 +52,11 @@ class MediaPlayer():
     and update the message broker with its playback status.
     """
 
-    def __init__(self, vlc = None, playlist = [], current_playlist_position = 0):
+    def __init__(self, vlc = None, playlist = [], current_playlist_position = 0, vlc_connection_attempts = 0):
         self.vlc = vlc
         self.playlist = playlist
         self.current_playlist_position = current_playlist_position
+        self.vlc_connection_attempts = vlc_connection_attempts
 
 
     def datetime_now(self):
@@ -128,11 +130,23 @@ class MediaPlayer():
                                     exchange=media_player_exchange, routing_key=routing_key,
                                     declare=[playback_queue])
 
-            except (KeyError, requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-                template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
-                message = template.format(type(e).__name__, e.args)
-                print(message)
-                sentry_sdk.capture_exception(e)
+            except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+                if self.vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
+                    template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+                    message = template.format(type(e).__name__, e.args)
+                    print(message)
+                    print(f'Can\'t connect to VLC player. Attempt {self.vlc_connection_attempts}')
+                    sentry_sdk.capture_exception(e)
+                self.vlc_connection_attempts += 1
+
+            except (KeyError) as e:
+                if self.vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
+                    template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+                    message = template.format(type(e).__name__, e.args)
+                    print(message)
+                    print(f'Current vlc_status: {vlc_status}')
+                    sentry_sdk.capture_exception(e)
+                self.vlc_connection_attempts += 1
 
             except (Exception, TimeoutError) as e:
                 template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
