@@ -15,7 +15,9 @@ fi
 # start desktop manager
 echo "STARTING X"
 startx &
-sleep 5
+
+# TODO: work out how to detect X has started
+sleep 20
 
 # uncomment to start x without mouse cursor
 # startx -- -nocursor &
@@ -33,6 +35,6 @@ xfconf-query -c xfce4-desktop -np '/desktop-icons/style' -t 'int' -s '0'
 xfce4-panel -q
 
 # Unmute system audio
-amixer -c 0 set Master playback 100% unmute
+# amixer -c 0 set Master playback 100% unmute
 
 python media_player.py
