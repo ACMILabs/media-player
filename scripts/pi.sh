@@ -14,7 +14,6 @@ fi
 
 # start desktop manager
 echo "STARTING X"
-sleep 30
 startx &
 
 # TODO: work out how to detect X has started
