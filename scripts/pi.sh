@@ -14,6 +14,8 @@ fi
 
 # start desktop manager
 echo "STARTING X"
+rm /tmp/.X0-lock &>/dev/null || true
+sleep 2
 startx &
 
 # TODO: work out how to detect X has started
