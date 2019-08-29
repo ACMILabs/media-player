@@ -14,7 +14,7 @@ fi
 
 # start desktop manager
 echo "STARTING X"
-startxfce4 &
+startx &
 
 # TODO: work out how to detect X has started
 sleep 5
