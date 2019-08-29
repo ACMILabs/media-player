@@ -13,17 +13,20 @@ if [[ ! -z "$ROTATE_DISPLAY" ]]; then
 fi
 
 # start desktop manager
-echo "STARTING X"
-startx &
+# echo "STARTING X"
+# startxfce &
 
 # TODO: work out how to detect X has started
-sleep 20
+sleep 5
 
 # uncomment to start x without mouse cursor
 # startx -- -nocursor &
 
 # uncomment to open an application instead of the desktop
 # startx xterm 
+
+# Hide the cursor
+unclutter -display :0 -idle 0.1 &
 
 # Set X background image
 xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/workspace0/last-image --set /code/resources/acmi-1920x1080.png

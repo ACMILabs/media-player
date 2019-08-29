@@ -14,6 +14,7 @@ RUN install_packages vlc vlc-plugin-* g++ \
   dbus-x11 \
   matchbox-keyboard \
   xterm \
+  unclutter \
   # Intel GPU drivers for VLC
   i965-va-driver \
   vainfo \
