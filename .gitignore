@@ -5,4 +5,4 @@ resources/*
 !resources/blank-1920x1080.png
 .DS_Store
 .venv
-
+.vscode
