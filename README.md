@@ -3,6 +3,16 @@ Media player
 
 A media player prototype using Python to launch VLC.
 
+## Deploying via Balena for both x86 and ARM
+
+### x86
+
+$ balena deploy appName --build --buildArg 'IS_X86=true'
+
+### ARM
+
+$ balena deploy appName
+
 ## Installation on macOS
 
 * Clone this repository.

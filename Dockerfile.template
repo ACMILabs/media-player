@@ -1,6 +1,6 @@
 # base-image for python on any machine using a template variable,
 # see more about dockerfile templates here: https://www.balena.io/docs/learn/develop/dockerfile/
-FROM balenalib/i386-ubuntu-python:3.7.2-bionic-run
+FROM balenalib/%%BALENA_ARCH%%-ubuntu-python:3.7.2-bionic-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
@@ -14,15 +14,16 @@ RUN install_packages vlc vlc-plugin-* g++ \
   dbus-x11 \
   matchbox-keyboard \
   xterm \
-  unclutter \
-  # Intel GPU drivers for VLC
-  i965-va-driver \
-  vainfo \
   # For system volume
   libasound2-dev \
   # Audio
-  pulseaudio \
   alsa-utils
+
+# Intel GPU drivers for VLC
+ARG IS_X86
+RUN if [ "$IS_X86" = "true" ]; \
+  then install_packages i965-va-driver vainfo; \
+  fi
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
