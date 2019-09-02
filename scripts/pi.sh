@@ -22,4 +22,7 @@ startx &
 # uncomment to open an application instead of the desktop
 # startx xterm 
 
+# Unmute system audio
+amixer -c 0 set Master playback 100% unmute
+
 python media_player.py
