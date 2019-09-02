@@ -7,9 +7,11 @@ from threading import Thread
 import time
 from urllib.parse import urlparse
 
+import alsaaudio
 from kombu import Connection, Exchange, Queue
 import pytz
 import sentry_sdk
+import status_client
 import vlc
 
 
@@ -22,6 +24,8 @@ VLC_URL = os.getenv('VLC_URL')
 VLC_PASSWORD = os.getenv('VLC_PASSWORD')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
 USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST')
+DEVICE_NAME = os.getenv('BALENA_DEVICE_NAME_AT_INIT')
+DEVICE_UUID = os.getenv('BALENA_DEVICE_UUID')
 BALENA_APP_ID = os.getenv('BALENA_APP_ID')
 BALENA_SERVICE_NAME = os.getenv('BALENA_SERVICE_NAME')
 BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
@@ -69,6 +73,7 @@ class MediaPlayer():
 
                 # Match playback filename with label id in self.playlist
                 playback_position = vlc_status['position']
+                duration = vlc_status['length']
                 currently_playing_label_id = None
                 currently_playing_resource = os.path.basename(urlparse(vlc_status['information']['category']['meta']['filename']).path)
                 for idx, item in enumerate(self.playlist):
@@ -79,13 +84,36 @@ class MediaPlayer():
                             self.current_playlist_position = idx
                             print(f'Playing video {self.current_playlist_position}: {self.generate_playlist()[self.current_playlist_position]}')
 
+                # Read the system volume
+                mixer = alsaaudio.Mixer(alsaaudio.mixers()[0])
+                system_volume = str(mixer.getvolume()[0] / 10) # System value 0-100
+
+                # Read the player volume
+                player_volume = str(vlc_status['volume'] / 256 * 10) # Player value 0-256
+
                 media_player_status_json = {
                     "datetime": self.datetime_now(),
                     "playlist_id": int(PLAYLIST_ID),
                     "media_player_id": int(MEDIA_PLAYER_ID),
                     "label_id": currently_playing_label_id,
                     "playback_position": playback_position,
+                    "player_volume": player_volume,
+                    "system_volume": system_volume,
                 }
+
+                status_client.set_status(
+                    DEVICE_UUID,
+                    DEVICE_NAME,
+                    currently_playing_resource,
+                    duration,
+                    media_player_status_json['playback_position'],
+                    self.current_playlist_position,
+                    media_player_status_json['label_id'],
+                    0, # TODO: Audio buffer
+                    0, # TODO: Video buffer
+                    media_player_status_json['player_volume'],
+                    media_player_status_json['system_volume'],
+                )
 
                 # Publish to XOS broker
                 with Connection(AMQP_URL) as conn:

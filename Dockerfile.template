@@ -16,7 +16,9 @@ RUN install_packages vlc vlc-plugin-* g++ \
   xterm \
   # Intel GPU drivers for VLC
   i965-va-driver \
-  vainfo
+  vainfo \
+  # For system volume
+  libasound2-dev
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
