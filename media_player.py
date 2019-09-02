@@ -32,7 +32,7 @@ BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
 BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 SENTRY_ID = os.getenv('SENTRY_ID')
 SUBTITLES = os.getenv('SUBTITLES', 'true')
-VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', DOWNLOAD_RETRIES))
+VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -52,7 +52,7 @@ class MediaPlayer():
     and update the message broker with its playback status.
     """
 
-    def __init__(self, vlc = None, playlist = [], current_playlist_position = 0, vlc_connection_attempts = 0):
+    def __init__(self, vlc=None, playlist=[], current_playlist_position=0, vlc_connection_attempts=0):
         self.vlc = vlc
         self.playlist = playlist
         self.current_playlist_position = current_playlist_position
