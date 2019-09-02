@@ -91,12 +91,18 @@ class MediaPlayer():
                 # Read the player volume
                 player_volume = str(vlc_status['volume'] / 256 * 10) # Player value 0-256
 
+                # Read the dropped frames
+                dropped_audio_frames = vlc_status['stats']['lostabuffers']
+                dropped_video_frames = vlc_status['stats']['lostpictures']
+
                 media_player_status_json = {
                     "datetime": self.datetime_now(),
                     "playlist_id": int(PLAYLIST_ID),
                     "media_player_id": int(MEDIA_PLAYER_ID),
                     "label_id": currently_playing_label_id,
                     "playback_position": playback_position,
+                    "dropped_audio_frames": dropped_audio_frames,
+                    "dropped_video_frames": dropped_video_frames,
                     "player_volume": player_volume,
                     "system_volume": system_volume,
                 }
@@ -109,8 +115,8 @@ class MediaPlayer():
                     media_player_status_json['playback_position'],
                     self.current_playlist_position,
                     media_player_status_json['label_id'],
-                    0, # TODO: Audio buffer
-                    0, # TODO: Video buffer
+                    media_player_status_json['dropped_audio_frames'],
+                    media_player_status_json['dropped_video_frames'],
                     media_player_status_json['player_volume'],
                     media_player_status_json['system_volume'],
                 )
