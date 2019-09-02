@@ -14,13 +14,16 @@ RUN install_packages vlc vlc-plugin-* g++ \
   dbus-x11 \
   matchbox-keyboard \
   xterm \
-  # Intel GPU drivers for VLC
-  i965-va-driver \
-  vainfo \
   # For system volume
   libasound2-dev \
   # Audio
   alsa-utils
+
+# Intel GPU drivers for VLC
+ARG IS_X86
+RUN if [ "$IS_X86" = "true" ]; \
+  then install_packages i965-va-driver vainfo; \
+  fi
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
