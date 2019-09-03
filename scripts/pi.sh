@@ -38,6 +38,6 @@ xfconf-query -c xfce4-desktop -np '/desktop-icons/style' -t 'int' -s '0'
 xfce4-panel -q
 
 # Unmute system audio
-# amixer -c 0 set Master playback 100% unmute
+# ./scripts/unmute.sh
 
 python media_player.py
