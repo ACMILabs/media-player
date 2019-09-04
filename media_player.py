@@ -52,15 +52,15 @@ class MediaPlayer():
     and update the message broker with its playback status.
     """
 
-    def __init__(self, vlc_player=None, playlist=[], current_playlist_position=0,
-                 vlc_connection_attempts=0):
-        self.vlc_player = vlc_player
-        self.playlist = playlist
-        self.current_playlist_position = current_playlist_position
-        self.vlc_connection_attempts = vlc_connection_attempts
+    def __init__(self):
+        self.vlc_player = None
+        self.playlist = []
+        self.current_playlist_position = 0
+        self.vlc_connection_attempts = 0
 
 
-    def datetime_now(self):
+    @staticmethod
+    def datetime_now():
         return datetime.now(pytz_timezone).isoformat()
 
 
