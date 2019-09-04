@@ -294,50 +294,58 @@ class MediaPlayer():
             sentry_sdk.capture_exception(e)
 
 
-# Download playlist JSON from XOS
-media_player = MediaPlayer()
-try:
-    response = requests.get(XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID)
-    response.raise_for_status()
-    playlist_labels = response.json()['playlist_labels']
+    def download_playlist_from_xos(self):
+        try:
+            response = requests.get(XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID)
+            response.raise_for_status()
+            playlist_labels = response.json()['playlist_labels']
 
-    # Download resources if they aren't available locally
-    for item in playlist_labels:
-        media_player.download_resources(item)
+            # Download resources if they aren't available locally
+            for item in playlist_labels:
+                self.download_resources(item)
 
-except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-    print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
-    sentry_sdk.capture_exception(e)
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+            print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {e}')
+            sentry_sdk.capture_exception(e)
 
-except KeyError as e:
-    message = f'Is there a resource for this playlist? {XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID}'
-    print(message)
-    sentry_sdk.capture_exception(e)
-
-
-# Check if vlc can play the media in self.playlist
-try:
-    for item in media_player.playlist:
-        video_resource = item['resource']
-        media_player.vlc = vlc.MediaPlayer(video_resource)
-        media = media_player.vlc.get_media()
-        media.parse()
-        if media.get_duration():
-            # OK to play
-            pass
-        else:
-            print(f'Video doesn\'t seem playable: {video_resource}, removing from the playlist.')
-            media_player.playlist.remove(item)
-except Exception as e:
-    print(f'Video playback test failed with error {e}')
-    sentry_sdk.capture_exception(e)
+        except KeyError as e:
+            message = f'Is there a resource for this playlist? {XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID}'
+            print(message)
+            sentry_sdk.capture_exception(e)
 
 
-vlc_thread = Thread(target=media_player.start_vlc)
-vlc_thread.start()
+def main():
+    # Download playlist JSON from XOS
+    media_player = MediaPlayer()
+    media_player.download_playlist_from_xos()
 
-# Wait for VLC to launch
-time.sleep(5)
+    # Check if vlc can play the media in self.playlist
+    try:
+        for item in media_player.playlist:
+            video_resource = item['resource']
+            media_player.vlc = vlc.MediaPlayer(video_resource)
+            media = media_player.vlc.get_media()
+            media.parse()
+            if media.get_duration():
+                # OK to play
+                pass
+            else:
+                print(f'Video doesn\'t seem playable: {video_resource}, removing from the playlist.')
+                media_player.playlist.remove(item)
+    except Exception as e:
+        print(f'Video playback test failed with error {e}')
+        sentry_sdk.capture_exception(e)
 
-playback_time_thread = Thread(target=media_player.post_playback_to_xos)
-playback_time_thread.start()
+
+    vlc_thread = Thread(target=media_player.start_vlc)
+    vlc_thread.start()
+
+    # Wait for VLC to launch
+    time.sleep(5)
+
+    playback_time_thread = Thread(target=media_player.post_playback_to_xos)
+    playback_time_thread.start()
+
+
+if __name__ == "__main__":
+    main()

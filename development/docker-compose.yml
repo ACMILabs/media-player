@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  mediaplayer:
+    build:
+      context: "../"
+      dockerfile: development/Dockerfile
+      args:
+        IS_LOCAL_ENV: "true"
+    hostname: mediaplayer
+    container_name: mediaplayer
+    env_file: ../dev.env
+    volumes:
+      - ../:/code        
+    # command: ./scripts/pi.sh
+    tty: true
+    ports:
+     - 8080:8080

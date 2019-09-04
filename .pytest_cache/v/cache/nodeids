@@ -1,0 +1,5 @@
+[
+  "tests/tests.py::test_media_player",
+  "tests/tests.py::test_datetime_now",
+  "tests/tests.py::test_download_playlist_from_xos"
+]
