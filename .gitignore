@@ -1,10 +1,14 @@
 config.env
+dev.env
 resources
 !resources/example.mp4
 .DS_Store
 .venv
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache
+tests/__pycache__/
