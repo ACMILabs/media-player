@@ -3,12 +3,6 @@
 <channel name="xfce4-panel" version="1.0">
   <property name="configver" type="int" value="2"/>
   <property name="panels" type="array">
-    <value type="int" value="1"/>
-    <value type="int" value="2"/>
-    <property name="panel-1" type="empty">
-    </property>
-    <property name="panel-2" type="empty">
-    </property>
   </property>
   <property name="plugins" type="empty">
     <property name="plugin-1" type="string" value="applicationsmenu"/>
