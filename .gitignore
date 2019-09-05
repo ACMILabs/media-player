@@ -1,7 +1,8 @@
 config.env
 dev.env
-resources
-!resources/example.mp4
+resources/*
+!resources/sample.mp4
+!resources/sample.srt
 .DS_Store
 .venv
 .vscode

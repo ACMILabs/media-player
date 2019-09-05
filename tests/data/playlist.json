@@ -1,1 +1,69 @@
-{"id":1,"title":"Demo playlist","playlist_labels":[{"label":{"id":17,"title":"Dracula","description":"When Dracula leaves the captive Jonathan Harker and Transylvania for London in search of Mina Harkerâ€”the spitting image of Dracula's long-dead wife, Elisabetaâ€”obsessed vampire hunter, Dr. Van Helsing sets out to end the madness.","publication":"1992, Dir. Francis Ford Coppola","rights":"","works":[{"id":47,"title":"Dracula","image":"https://museumos-prod-media.s3.amazonaws.com/museumos/works/image/ioHxm3D3JdSXR61LRhcVb8KdZOz.jpg?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=%2B58T4qlA3WYWuwKIjJ9iboQENGs%3D&Expires=1567650494","abstract":"","brief_description":"When Dracula leaves the captive Jonathan Harker and Transylvania for London in search of Mina Harkerâ€”the spitting image of Dracula's long-dead wife, Elisabetaâ€”obsessed vampire hunter, Dr. Van Helsing sets out to end the madness.","first_production_year":"1992"}]},"resource":"https://museumos-prod-media.s3.amazonaws.com/museumos/dracula.mp4?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=fsNTuyjv%2FpiODqseAjH2pFiz8uM%3D&Expires=1567650494","subtitles":"https://museumos-prod-media.s3.amazonaws.com/museumos/dracula.srt?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=LgXRoI6JwJuQ5lledbhMjxPlwII%3D&Expires=1567650494"},{"label":{"id":18,"title":"Jurassic Park","description":"A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA. Before opening day, he invites a team of experts and his two eager grandchildren to experience the park and help calm anxious investors. However, the park is anything but amusing as the security systems go off-line and the dinosaurs escape.","publication":"1993, Dir. Steven Spielberg","rights":"","works":[{"id":49,"title":"Jurassic Park","image":"https://museumos-prod-media.s3.amazonaws.com/museumos/works/image/c414cDeQ9b6qLPLeKmiJuLDUREJ.jpg?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=AuIDIVqVT2OenR%2Fie62xS%2B5MjLc%3D&Expires=1567650494","abstract":"","brief_description":"A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA. Before opening day, he invites a team of experts and his two eager grandchildren to experience the park and help calm anxious investors. However, the park is anything but amusing as the security systems go off-line and the dinosaurs escape.","first_production_year":"1993"}]},"resource":"https://museumos-prod-media.s3.amazonaws.com/museumos/jurassic-park.mp4?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=90%2B%2BrZycft%2FtYdgVgvdXP0qypN4%3D&Expires=1567650494","subtitles":"https://museumos-prod-media.s3.amazonaws.com/museumos/jurassic-park.srt?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=YQMS9bHlyfMgjTnnGn2P2Z3Mkd0%3D&Expires=1567650494"},{"label":{"id":19,"title":"Kiki's Delivery Service","description":"A young witch, on her mandatory year of independent life, finds fitting into a new community difficult while she supports herself by running an air courier service.","publication":"1989, Dir. Hayao Miyazaki","rights":"","works":[{"id":48,"title":"Kiki's Delivery Service","image":"https://museumos-prod-media.s3.amazonaws.com/museumos/works/image/3LvTAZayVIWke8XDmiwNR6cX6EP.jpg?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=j%2FpXU4VU3m359%2F96K2IHe2Ii8Ao%3D&Expires=1567650494","abstract":"","brief_description":"A young witch, on her mandatory year of independent life, finds fitting into a new community difficult while she supports herself by running an air courier service.","first_production_year":"1989"}]},"resource":"https://museumos-prod-media.s3.amazonaws.com/museumos/kiki.mp4?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=lw%2BSaPdxg9qIVUN0N6V3gLtrEeE%3D&Expires=1567650494","subtitles":"https://museumos-prod-media.s3.amazonaws.com/museumos/kiki.srt?AWSAccessKeyId=AKIAJJ6243F2DWMI5O3A&Signature=SCGOEfZkl5HlLhkY%2Br4nomEDgHQ%3D&Expires=1567650494"}]}
+{
+  "id": 1,
+  "title": "Demo playlist",
+  "playlist_labels": [
+    {
+      "label": {
+        "id": 17,
+        "title": "Dracula",
+        "description": "When Dracula leaves the captive Jonathan Harker and Transylvania for London in search of Mina Harkerâ€”the spitting image of Dracula's long-dead wife, Elisabetaâ€”obsessed vampire hunter, Dr. Van Helsing sets out to end the madness.",
+        "publication": "1992, Dir. Francis Ford Coppola",
+        "rights": "",
+        "works": [
+          {
+            "id": 47,
+            "title": "Dracula",
+            "image": "file:///code/resources/sample.jpg",
+            "abstract": "",
+            "brief_description": "When Dracula leaves the captive Jonathan Harker and Transylvania for London in search of Mina Harkerâ€”the spitting image of Dracula's long-dead wife, Elisabetaâ€”obsessed vampire hunter, Dr. Van Helsing sets out to end the madness.",
+            "first_production_year": "1992"
+          }
+        ]
+      },
+      "resource": "file:///code/resources/sample.mp4",
+      "subtitles": "file:///code/resources/sample.srt"
+    },
+    {
+      "label": {
+        "id": 18,
+        "title": "Jurassic Park",
+        "description": "A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA. Before opening day, he invites a team of experts and his two eager grandchildren to experience the park and help calm anxious investors. However, the park is anything but amusing as the security systems go off-line and the dinosaurs escape.",
+        "publication": "1993, Dir. Steven Spielberg",
+        "rights": "",
+        "works": [
+          {
+            "id": 49,
+            "title": "Jurassic Park",
+            "image": "file:///code/resources/sample.jpg",
+            "abstract": "",
+            "brief_description": "A wealthy entrepreneur secretly creates a theme park featuring living dinosaurs drawn from prehistoric DNA. Before opening day, he invites a team of experts and his two eager grandchildren to experience the park and help calm anxious investors. However, the park is anything but amusing as the security systems go off-line and the dinosaurs escape.",
+            "first_production_year": "1993"
+          }
+        ]
+      },
+      "resource": "file:///code/resources/sample.mp4",
+      "subtitles": "file:///code/resources/sample.srt"
+    },
+    {
+      "label": {
+        "id": 19,
+        "title": "Kiki's Delivery Service",
+        "description": "A young witch, on her mandatory year of independent life, finds fitting into a new community difficult while she supports herself by running an air courier service.",
+        "publication": "1989, Dir. Hayao Miyazaki",
+        "rights": "",
+        "works": [
+          {
+            "id": 48,
+            "title": "Kiki's Delivery Service",
+            "image": "file:///code/resources/sample.jpg",
+            "abstract": "",
+            "brief_description": "A young witch, on her mandatory year of independent life, finds fitting into a new community difficult while she supports herself by running an air courier service.",
+            "first_production_year": "1989"
+          }
+        ]
+      },
+      "resource": "file:///code/resources/sample.mp4",
+      "subtitles": "file:///code/resources/sample.srt"
+    }
+  ]
+}

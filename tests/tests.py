@@ -83,5 +83,5 @@ def test_download_playlist_from_xos(mock_get):
     playlist = media_player.playlist
 
     assert len(playlist) == 3
-    assert playlist[0]['resource'] == 'resources/dracula.mp4'
-    assert playlist[0]['subtitles'] == 'resources/dracula.srt'
+    assert playlist[0]['resource'] == 'resources/sample.mp4'
+    assert playlist[0]['subtitles'] == 'resources/sample.srt'
