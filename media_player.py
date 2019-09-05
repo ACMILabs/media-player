@@ -37,13 +37,13 @@ VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
 
-pytz_timezone = pytz.timezone('Australia/Melbourne')
-queue_name = f'mqtt-subscription-playback_{MEDIA_PLAYER_ID}'
-routing_key = f'mediaplayer.{MEDIA_PLAYER_ID}'
+PYTZ_TIMEZONE = pytz.timezone('Australia/Melbourne')
+QUEUE_NAME = f'mqtt-subscription-playback_{MEDIA_PLAYER_ID}'
+ROUTING_KEY = f'mediaplayer.{MEDIA_PLAYER_ID}'
 
 # Playback messaging
-media_player_exchange = Exchange('amq.topic', 'direct', durable=True)
-playback_queue = Queue(queue_name, exchange=media_player_exchange, routing_key=routing_key)
+MEDIA_PLAYER_EXCHANGE = Exchange('amq.topic', 'direct', durable=True)
+PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=ROUTING_KEY)
 
 
 class MediaPlayer():
@@ -58,13 +58,11 @@ class MediaPlayer():
         self.current_playlist_position = 0
         self.vlc_connection_attempts = 0
 
-
     @staticmethod
     def datetime_now():
-        return datetime.now(pytz_timezone).isoformat()
+        return datetime.now(PYTZ_TIMEZONE).isoformat()
 
-
-    def post_playback_to_xos(self):
+    def post_playback_to_xos(self):  # pylint: disable=R0914
         while True:
             try:
                 # Get playback status from VLC
@@ -75,8 +73,6 @@ class MediaPlayer():
                 vlc_status = response.json()
 
                 # Match playback filename with label id in self.playlist
-                playback_position = vlc_status['position']
-                duration = vlc_status['length']
                 currently_playing_label_id = None
                 currently_playing_resource = os.path.basename(
                     urlparse(vlc_status['information']['category']['meta']['filename']).path
@@ -90,34 +86,27 @@ class MediaPlayer():
                             print(f'Playing video {self.current_playlist_position}: '
                                   '{self.generate_playlist()[self.current_playlist_position]}')
 
-                # Read the system volume
-                mixer = alsaaudio.Mixer(alsaaudio.mixers()[0])
-                system_volume = str(mixer.getvolume()[0] / 10) # System value 0-100
-
-                # Read the player volume
-                player_volume = str(vlc_status['volume'] / 256 * 10) # Player value 0-256
-
-                # Read the dropped frames
-                dropped_audio_frames = vlc_status['stats']['lostabuffers']
-                dropped_video_frames = vlc_status['stats']['lostpictures']
-
                 media_player_status_json = {
                     "datetime": self.datetime_now(),
                     "playlist_id": int(PLAYLIST_ID),
                     "media_player_id": int(MEDIA_PLAYER_ID),
                     "label_id": currently_playing_label_id,
-                    "playback_position": playback_position,
-                    "dropped_audio_frames": dropped_audio_frames,
-                    "dropped_video_frames": dropped_video_frames,
-                    "player_volume": player_volume,
-                    "system_volume": system_volume,
+                    "playback_position": vlc_status['position'],
+                    "dropped_audio_frames": vlc_status['stats']['lostabuffers'],
+                    "dropped_video_frames": vlc_status['stats']['lostpictures'],
+                    "player_volume": \
+                    # Player value 0-256
+                    str(vlc_status['volume'] / 256 * 10),
+                    "system_volume": \
+                    # System value 0-100
+                    str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
                 }
 
                 status_client.set_status(
                     DEVICE_UUID,
                     DEVICE_NAME,
                     currently_playing_resource,
-                    duration,
+                    vlc_status['length'],
                     media_player_status_json['playback_position'],
                     self.current_playlist_position,
                     media_player_status_json['label_id'],
@@ -131,14 +120,14 @@ class MediaPlayer():
                 with Connection(AMQP_URL) as conn:
                     producer = conn.Producer(serializer='json')
                     producer.publish(media_player_status_json,
-                                     exchange=media_player_exchange,
-                                     routing_key=routing_key,
-                                     declare=[playback_queue])
+                                     exchange=MEDIA_PLAYER_EXCHANGE,
+                                     routing_key=ROUTING_KEY,
+                                     declare=[PLAYBACK_QUEUE])
 
             except (
                     requests.exceptions.HTTPError,
-                    requests.exceptions.ConnectionError
-                ) as exception:
+                    requests.exceptions.ConnectionError,
+            ) as exception:
                 self.vlc_connection_attempts += 1
                 if self.vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
                     template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
@@ -156,7 +145,7 @@ class MediaPlayer():
                     print(f'Current vlc_status: {vlc_status}')
                     sentry_sdk.capture_exception(error)
 
-            except (Exception, TimeoutError) as error:
+            except (Exception, TimeoutError) as error:  # pylint: disable=W0703
                 template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                 message = template.format(type(error).__name__, error.args)
                 print(message)
@@ -166,8 +155,8 @@ class MediaPlayer():
 
             time.sleep(float(TIME_BETWEEN_PLAYBACK_STATUS))
 
-
-    def restart_app_container(self):
+    @staticmethod
+    def restart_app_container():
         try:
             balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/\
                 restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
@@ -181,12 +170,11 @@ class MediaPlayer():
             print(message)
             sentry_sdk.capture_exception(exception)
 
-
-    def resource_needs_downloading(self, resource_path):
+    @staticmethod
+    def resource_needs_downloading(resource_path):
         return (not os.path.isfile(resource_path)) \
-            or (os.path.isfile(resource_path) \
+            or (os.path.isfile(resource_path)
                 and not os.stat(resource_path).st_size > 0)
-
 
     def download_resources(self, playlist_label):
         resources_path = 'resources/'
@@ -226,8 +214,8 @@ class MediaPlayer():
 
             self.playlist.append(item_dictionary)
 
-
-    def download_file(self, url):
+    @staticmethod
+    def download_file(url):
         for _ in range(DOWNLOAD_RETRIES):
             try:
                 local_filename = urlparse(url).path.split('/')[-1]
@@ -240,20 +228,19 @@ class MediaPlayer():
                     response.raise_for_status()
                     with open('resources/' + local_filename, 'wb') as open_file:
                         for chunk in response.iter_content(chunk_size=8192):
-                            if chunk: # filter out keep-alive new chunks
+                            if chunk:  # filter out keep-alive new chunks
                                 open_file.write(chunk)
                                 # open_file.flush()
                 return local_filename
             except (
                     requests.exceptions.HTTPError,
-                    requests.exceptions.ConnectionError
-                ) as exception:
+                    requests.exceptions.ConnectionError,
+            ) as exception:
                 message = f'Failed to download the file {local_filename} with error {exception}'
                 print(message)
                 sentry_sdk.capture_exception(exception)
         message = f'Tried to download {url} {DOWNLOAD_RETRIES} times, giving up.'
         print(message)
-
 
     def generate_pls_playlist(self):
         # Generates a playlist.pls file and returns the filename
@@ -266,9 +253,8 @@ class MediaPlayer():
             open_file.write(pls_string)
         if Path(pls_filename).exists():
             return pls_filename
-        else:
-            return None
 
+        return None
 
     def generate_playlist(self):
         # Generates a list of files to hand into the VLC call
@@ -276,7 +262,6 @@ class MediaPlayer():
         for item in self.playlist:
             playlist.append(item['resource'])
         return playlist
-
 
     def start_vlc(self):
         try:
@@ -323,7 +308,6 @@ class MediaPlayer():
             print(f'Playlist seems to be empty: {playlist}')
             sentry_sdk.capture_exception(exception)
 
-
     def download_playlist_from_xos(self):
         try:
             response = requests.get(XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID)
@@ -364,10 +348,9 @@ def main():
                 print(f'Video doesn\'t seem playable: \
                     {video_resource}, removing from the playlist.')
                 media_player.playlist.remove(item)
-    except Exception as exception:
+    except Exception as exception:  # pylint: disable=W0703
         print(f'Video playback test failed with error {exception}')
         sentry_sdk.capture_exception(exception)
-
 
     vlc_thread = Thread(target=media_player.start_vlc)
     vlc_thread.start()

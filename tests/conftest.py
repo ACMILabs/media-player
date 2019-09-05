@@ -7,6 +7,7 @@ def status_client():
     """
     return 0
 
+
 MODULE = type(sys)('status_client')
 MODULE.status_client = status_client
 sys.modules['status_client'] = MODULE
