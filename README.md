@@ -13,6 +13,11 @@ $ balena deploy appName --build --buildArg 'IS_X86=true'
 
 $ balena deploy appName
 
+## Testing and linting
+
+1. Build the development container `$ docker-compose up --build`
+2. Run testing & linting: `$ docker exec -it mediaplayer make linttest`
+
 ## Installation on macOS
 
 * Clone this repository.
