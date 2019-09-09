@@ -247,7 +247,7 @@ class MediaPlayer():
         pls_filename = 'resources/playlist.pls'
         pls_string = '[playlist]\n'
         for idx, item in enumerate(self.playlist, start=1):
-            pls_string += (f"File{idx + 1}={item['resource'].split('/')[-1]}\n")
+            pls_string += (f"File{idx}={item['resource'].split('/')[-1]}\n")
         pls_string += f'NumberOfEntries={len(self.playlist)}\nVersion=2'
         with open(pls_filename, 'w') as open_file:
             open_file.write(pls_string)

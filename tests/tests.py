@@ -70,3 +70,23 @@ def test_download_playlist_from_xos(mock_get):
     assert len(playlist) == 3
     assert playlist[0]['resource'] == 'resources/sample.mp4'
     assert playlist[0]['subtitles'] == 'resources/sample.srt'
+
+
+@patch('requests.get', side_effect=mocked_requests_get)
+def test_generate_pls_playlist(mock_get):
+    """
+    Test generate_pls_playlist() returns the expected format.
+    """
+
+    media_player = MediaPlayer()
+    media_player.download_playlist_from_xos()
+    playlist = media_player.playlist
+    pls_playlist = open(media_player.generate_pls_playlist()).read()
+
+    assert len(playlist) == 3
+    assert '[playlist]' in pls_playlist
+    assert 'File1=sample.mp4' in pls_playlist
+    assert 'File2=sample.mp4' in pls_playlist
+    assert 'File3=sample.mp4' in pls_playlist
+    assert 'NumberOfEntries=3' in pls_playlist
+    assert 'Version=2' in pls_playlist
