@@ -1,4 +1,5 @@
 config.env
+dev.env
 resources/*
 !resources/example.mp4
 !resources/acmi-1920x1080.png
