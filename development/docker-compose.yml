@@ -11,8 +11,7 @@ services:
     container_name: mediaplayer
     env_file: ../dev.env
     volumes:
-      - ../:/code        
-    # command: ./scripts/pi.sh
+      - ../:/code
     tty: true
     ports:
      - 8080:8080
