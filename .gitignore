@@ -1,6 +1,9 @@
 config.env
 dev.env
 resources/*
+!resources/example.mp4
+!resources/acmi-1920x1080.png
+!resources/blank-1920x1080.png
 !resources/sample.mp4
 !resources/sample.srt
 .DS_Store
@@ -13,3 +16,4 @@ __pycache__/
 *$py.class
 .pytest_cache
 tests/__pycache__/
+

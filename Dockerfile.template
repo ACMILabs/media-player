@@ -14,6 +14,7 @@ RUN install_packages vlc vlc-plugin-* g++ \
   dbus-x11 \
   matchbox-keyboard \
   xterm \
+  unclutter \
   # For system volume
   libasound2-dev \
   # Audio
@@ -42,7 +43,12 @@ ENV UDEV 1
 ENV DISPLAY :0
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 
+# Copy Intel display settings for Dell OptiPlex 3070
 COPY ./conf/20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
+
+# Copy X desktop settings to set the wallpaper
+COPY ./conf/xfce4-desktop.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+COPY ./conf/xfce4-panel.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
 
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install -Ur /code/requirements.txt
