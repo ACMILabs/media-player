@@ -1,7 +1,17 @@
 Media player
 ============
 
-A media player prototype using Python to launch VLC.
+A media player using Python to launch VLC.
+
+Features:
+* Downloads a playlist of videos (with optional subtitles) from XOS
+* Posts playback & volume information to a broker
+
+Monitoring:
+* Includes a Prometheus client exporting playback & volume information
+
+Error reporting:
+* Posts exceptions and errors to Sentry
 
 ## Deploying via Balena for both x86 and ARM
 
@@ -12,6 +22,11 @@ $ balena deploy appName --build --buildArg 'IS_X86=true'
 ### ARM
 
 $ balena deploy appName
+
+## Testing and linting
+
+1. Build the development container `$ docker-compose up --build`
+2. Run testing & linting: `$ docker exec -it mediaplayer make linttest`
 
 ## Installation on macOS
 
