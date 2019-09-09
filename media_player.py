@@ -145,7 +145,7 @@ class MediaPlayer():
                     print(f'Current vlc_status: {vlc_status}')
                     sentry_sdk.capture_exception(error)
 
-            except (Exception, TimeoutError) as error:  # pylint: disable=W0703
+            except (TimeoutError) as error:
                 template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                 message = template.format(type(error).__name__, error.args)
                 print(message)
@@ -335,22 +335,18 @@ def main():
     media_player.download_playlist_from_xos()
 
     # Check if vlc can play the media in self.playlist
-    try:
-        for item in media_player.playlist:
-            video_resource = item['resource']
-            media_player.vlc_player = vlc.MediaPlayer(video_resource)
-            media = media_player.vlc_player.get_media()
-            media.parse()
-            if media.get_duration():
-                # OK to play
-                pass
-            else:
-                print(f'Video doesn\'t seem playable: \
-                    {video_resource}, removing from the playlist.')
-                media_player.playlist.remove(item)
-    except Exception as exception:  # pylint: disable=W0703
-        print(f'Video playback test failed with error {exception}')
-        sentry_sdk.capture_exception(exception)
+    for item in media_player.playlist:
+        video_resource = item['resource']
+        media_player.vlc_player = vlc.MediaPlayer(video_resource)
+        media = media_player.vlc_player.get_media()
+        media.parse()
+        if media.get_duration():
+            # OK to play
+            pass
+        else:
+            print(f'Video doesn\'t seem playable: \
+                {video_resource}, removing from the playlist.')
+            media_player.playlist.remove(item)
 
     vlc_thread = Thread(target=media_player.start_vlc)
     vlc_thread.start()
