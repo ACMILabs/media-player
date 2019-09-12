@@ -41,13 +41,10 @@ ENV UDEV 1
 ENV DISPLAY :0
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 
-COPY ./requirements.txt /code/requirements.txt
-COPY ./dev.txt /code/dev.txt
-RUN pip install -Ur /code/requirements.txt
-ARG IS_LOCAL_ENV
-RUN if [ "$IS_LOCAL_ENV" = "true" ]; \
-    then pip install -Ur /code/dev.txt; \
-    fi
+COPY ./requirements/base.txt /code/requirements/base.txt
+COPY ./requirements/test.txt /code/requirements/test.txt
+RUN pip install -Ur /code/test.txt
+
 COPY . /code/
 WORKDIR /code/
 
