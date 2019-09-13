@@ -87,19 +87,19 @@ class MediaPlayer():
                                   '{self.generate_playlist()[self.current_playlist_position]}')
 
                 media_player_status = {
-                    "datetime": self.datetime_now(),
-                    "playlist_id": int(PLAYLIST_ID),
-                    "media_player_id": int(MEDIA_PLAYER_ID),
-                    "label_id": currently_playing_label_id,
-                    "playlist_position": self.current_playlist_position,
-                    "playback_position": vlc_status['position'],
-                    "dropped_audio_frames": vlc_status['stats']['lostabuffers'],
-                    "dropped_video_frames": vlc_status['stats']['lostpictures'],
-                    "duration": vlc_status['length'],
-                    "player_volume": \
+                    'datetime': self.datetime_now(),
+                    'playlist_id': int(PLAYLIST_ID),
+                    'media_player_id': int(MEDIA_PLAYER_ID),
+                    'label_id': currently_playing_label_id,
+                    'playlist_position': self.current_playlist_position,
+                    'playback_position': vlc_status['position'],
+                    'dropped_audio_frames': vlc_status['stats']['lostabuffers'],
+                    'dropped_video_frames': vlc_status['stats']['lostpictures'],
+                    'duration': vlc_status['length'],
+                    'player_volume': \
                     # Player value 0-256
                     str(vlc_status['volume'] / 256 * 10),
-                    "system_volume": \
+                    'system_volume': \
                     # System value 0-100
                     str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
                 }
@@ -156,7 +156,7 @@ class MediaPlayer():
             balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/\
                 restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
             json = {
-                "serviceName": BALENA_SERVICE_NAME
+                'serviceName': BALENA_SERVICE_NAME
             }
             response = requests.post(balena_api_url, json=json)
             response.raise_for_status()
@@ -353,5 +353,5 @@ def main():
     playback_time_thread.start()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
