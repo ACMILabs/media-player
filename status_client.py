@@ -17,33 +17,26 @@ def set_status(
         uuid,
         device_name,
         filename,
-        duration,
-        playback_position,
-        position_playlist,
-        label_id,
-        dropped_audio_frames,
-        dropped_video_frames,
-        player_volume,
-        system_volume,
-        ):  # pylint: disable=R0913
+        media_player_status,
+        ):
     """
-    Sets values in the prometheus client's gauges and info metrics
+    Sets values in the prometheus client's gauges and info metrics.
     """
     DEVICE_INFO.info({
-        'uuid': str(uuid),
+        'uuid': uuid,
         'name': device_name
     })
     FILENAME_INFO.info({'filename': str(filename)})
-    DURATION_GAUGE.set(duration)
-    PLAYBACK_POSITION_GAUGE.set(playback_position)
-    POSITION_PLAYLIST_GAUGE.set(position_playlist)
-    LABEL_INFO.info({'id': str(label_id)})
-    if dropped_audio_frames:
-        DROPPED_AUDIO_FRAMES_GAUGE.set(dropped_audio_frames)
-    if dropped_video_frames:
-        DROPPED_VIDEO_FRAMES_GAUGE.set(dropped_video_frames)
-    PLAYER_VOLUME_GAUGE.set(player_volume)
-    SYSTEM_VOLUME_GAUGE.set(system_volume)
+    DURATION_GAUGE.set(media_player_status['duration'])
+    PLAYBACK_POSITION_GAUGE.set(media_player_status['playback_position'])
+    POSITION_PLAYLIST_GAUGE.set(media_player_status['playlist_position'])
+    LABEL_INFO.info({'id': str(media_player_status['label_id'])})
+    if media_player_status['dropped_audio_frames']:
+        DROPPED_AUDIO_FRAMES_GAUGE.set(media_player_status['dropped_audio_frames'])
+    if media_player_status['dropped_video_frames']:
+        DROPPED_VIDEO_FRAMES_GAUGE.set(media_player_status['dropped_video_frames'])
+    PLAYER_VOLUME_GAUGE.set(media_player_status['player_volume'])
+    SYSTEM_VOLUME_GAUGE.set(media_player_status['system_volume'])
 
 
 start_http_server(1007)
