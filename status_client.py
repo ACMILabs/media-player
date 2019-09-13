@@ -27,7 +27,7 @@ def set_status(
         system_volume,
         ):  # pylint: disable=R0913
     """
-    Sets values in the prometheus client's gauges and info metrics
+    Sets values in the prometheus client's gauges and info metrics.
     """
     DEVICE_INFO.info({
         'uuid': str(uuid),
