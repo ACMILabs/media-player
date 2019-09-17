@@ -43,7 +43,7 @@ ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 
 COPY ./requirements/base.txt /code/requirements/base.txt
 COPY ./requirements/test.txt /code/requirements/test.txt
-RUN pip install -Ur /code/test.txt
+RUN pip install -Ur /code/requirements/test.txt
 
 COPY . /code/
 WORKDIR /code/
