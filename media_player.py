@@ -16,7 +16,7 @@ from kombu import Connection, Exchange, Queue
 import status_client
 
 XOS_PLAYLIST_ENDPOINT = os.getenv('XOS_PLAYLIST_ENDPOINT')
-PLAYLIST_ID = os.getenv('PLAYLIST_ID')
+PLAYLIST_ID = os.getenv('PLAYLIST_ID', '1')
 MEDIA_PLAYER_ID = os.getenv('MEDIA_PLAYER_ID')
 DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
