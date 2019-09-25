@@ -332,6 +332,8 @@ class MediaPlayer():
                     f'{SYNC_CLIENT_TO}',
                 ])
 
+            print(vlc_display_command + playlist)
+
             subprocess.check_output(vlc_display_command + playlist)
 
         except subprocess.CalledProcessError as exception:
