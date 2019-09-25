@@ -50,8 +50,9 @@ COPY ./conf/20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
 COPY ./conf/xfce4-desktop.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
 COPY ./conf/xfce4-panel.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
 
-COPY ./requirements.txt /code/requirements.txt
-RUN pip install -Ur /code/requirements.txt
+COPY ./requirements/base.txt /code/requirements/base.txt
+COPY ./requirements/prod.txt /code/requirements/prod.txt
+RUN pip install -Ur /code/requirements/prod.txt
 
 COPY . /code/
 WORKDIR /code/
