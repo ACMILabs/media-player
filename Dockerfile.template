@@ -1,6 +1,7 @@
 # base-image for python on any machine using a template variable,
 # see more about dockerfile templates here: https://www.balena.io/docs/learn/develop/dockerfile/
-FROM balenalib/%%BALENA_ARCH%%-ubuntu-python:3.7.2-bionic-run
+# Force Raspberry Pi 3 for 32-bit X
+FROM balenalib/raspberrypi3-ubuntu-python:3.7.2-bionic-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
