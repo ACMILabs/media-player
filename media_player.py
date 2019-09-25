@@ -305,10 +305,10 @@ class MediaPlayer():
                 '--no-video-title-show',
                 '--video-on-top',
                 '--no-osd',
-                '--extraintf',
-                'http',
-                '--http-password',
-                VLC_PASSWORD,
+                # '--extraintf',
+                # 'http',
+                # '--http-password',
+                # VLC_PASSWORD,
             ]
             if int(USE_PLS_PLAYLIST) == 1:
                 playlist = [self.generate_pls_playlist()]
