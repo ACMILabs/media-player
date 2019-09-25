@@ -295,7 +295,7 @@ class MediaPlayer():
                 {playlist[self.current_playlist_position]}')
             vlc_display_command = [
                 'vlc',
-                '-vvv',
+                '-v',
                 '--x11-display',
                 ':0',
                 # '--quiet',
