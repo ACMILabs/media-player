@@ -297,7 +297,7 @@ class MediaPlayer():
                 'vlc',
                 '--x11-display',
                 ':0',
-                '--quiet',
+                # '--quiet',
                 '--loop',
                 '--fullscreen',
                 '--no-random',
