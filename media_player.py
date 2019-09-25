@@ -16,7 +16,7 @@ from kombu import Connection, Exchange, Queue
 import status_client
 
 XOS_PLAYLIST_ENDPOINT = os.getenv('XOS_PLAYLIST_ENDPOINT')
-PLAYLIST_ID = os.getenv('PLAYLIST_ID')
+PLAYLIST_ID = os.getenv('PLAYLIST_ID', '1')
 MEDIA_PLAYER_ID = os.getenv('MEDIA_PLAYER_ID')
 DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
@@ -60,9 +60,17 @@ class MediaPlayer():
 
     @staticmethod
     def datetime_now():
+        """
+        Return a string representation of the current datetime with the
+        timezone setting in an ISO 8601 format.
+        """
         return datetime.now(PYTZ_TIMEZONE).isoformat()
 
-    def post_playback_to_xos(self):  # pylint: disable=R0914
+    def post_playback_to_broker(self):  # pylint: disable=R0914
+        """
+        Sends current playback and player information to media broker and Prometheus
+        exporter.
+        """
         while True:
             try:
                 # Get playback status from VLC
@@ -152,6 +160,9 @@ class MediaPlayer():
 
     @staticmethod
     def restart_app_container():
+        """
+        Posts to the Balena supervisor to restart the media player service.
+        """
         try:
             balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/\
                 restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
@@ -167,11 +178,17 @@ class MediaPlayer():
 
     @staticmethod
     def resource_needs_downloading(resource_path):
+        """
+        Checks whether the resource exists.
+        """
         return (not os.path.isfile(resource_path)) \
             or (os.path.isfile(resource_path)
                 and not os.stat(resource_path).st_size > 0)
 
     def download_resources(self, playlist_label):
+        """
+        Downloads the resources for the specified playlist label.
+        """
         resources_path = 'resources/'
         try:
             resource_url = playlist_label.get('resource')
@@ -211,6 +228,9 @@ class MediaPlayer():
 
     @staticmethod
     def download_file(url):
+        """
+        Downloads the file at the specified URL.
+        """
         for _ in range(DOWNLOAD_RETRIES):
             try:
                 local_filename = urlparse(url).path.split('/')[-1]
@@ -238,7 +258,9 @@ class MediaPlayer():
         print(message)
 
     def generate_pls_playlist(self):
-        # Generates a playlist.pls file and returns the filename
+        """
+        Generates a playlist.pls file and returns the filename.
+        """
         pls_filename = 'resources/playlist.pls'
         pls_string = '[playlist]\n'
         for idx, item in enumerate(self.playlist, start=1):
@@ -252,13 +274,18 @@ class MediaPlayer():
         return None
 
     def generate_playlist(self):
-        # Generates a list of files to hand into the VLC call
+        """
+        Generates a list of files to hand into the VLC call.
+        """
         playlist = []
         for item in self.playlist:
             playlist.append(item['resource'])
         return playlist
 
     def start_vlc(self):
+        """
+        Starts VLC.
+        """
         try:
             playlist = self.generate_playlist()
 
@@ -304,6 +331,9 @@ class MediaPlayer():
             sentry_sdk.capture_exception(exception)
 
     def download_playlist_from_xos(self):
+        """
+        Downloads the playlist from XOS.
+        """
         try:
             response = requests.get(XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID)
             response.raise_for_status()
@@ -324,14 +354,15 @@ class MediaPlayer():
             sentry_sdk.capture_exception(exception)
 
 
-def main():
+if __name__ == "__main__":
+    # pylint: disable=invalid-name
     # Download playlist JSON from XOS
     media_player = MediaPlayer()
     media_player.download_playlist_from_xos()
 
     # Check if vlc can play the media in self.playlist
-    for item in media_player.playlist:
-        video_resource = item['resource']
+    for playlist_item in media_player.playlist:
+        video_resource = playlist_item['resource']
         media_player.vlc_player = vlc.MediaPlayer(video_resource)
         media = media_player.vlc_player.get_media()
         media.parse()
@@ -341,7 +372,7 @@ def main():
         else:
             print(f'Video doesn\'t seem playable: \
                 {video_resource}, removing from the playlist.')
-            media_player.playlist.remove(item)
+            media_player.playlist.remove(playlist_item)
 
     vlc_thread = Thread(target=media_player.start_vlc)
     vlc_thread.start()
@@ -349,9 +380,5 @@ def main():
     # Wait for VLC to launch
     time.sleep(5)
 
-    playback_time_thread = Thread(target=media_player.post_playback_to_xos)
+    playback_time_thread = Thread(target=media_player.post_playback_to_broker)
     playback_time_thread.start()
-
-
-if __name__ == '__main__':
-    main()

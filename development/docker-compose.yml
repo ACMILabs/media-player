@@ -5,8 +5,6 @@ services:
     build:
       context: "../"
       dockerfile: development/Dockerfile
-      args:
-        IS_LOCAL_ENV: "true"
     hostname: mediaplayer
     container_name: mediaplayer
     env_file: ../dev.env
