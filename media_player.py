@@ -94,18 +94,20 @@ class MediaPlayer():
                             print(f'Playing video {self.current_playlist_position}: '
                                   '{self.generate_playlist()[self.current_playlist_position]}')
 
-                media_player_status_json = {
-                    "datetime": self.datetime_now(),
-                    "playlist_id": int(PLAYLIST_ID),
-                    "media_player_id": int(MEDIA_PLAYER_ID),
-                    "label_id": currently_playing_label_id,
-                    "playback_position": vlc_status['position'],
-                    "dropped_audio_frames": vlc_status['stats']['lostabuffers'],
-                    "dropped_video_frames": vlc_status['stats']['lostpictures'],
-                    "player_volume": \
+                media_player_status = {
+                    'datetime': self.datetime_now(),
+                    'playlist_id': int(PLAYLIST_ID),
+                    'media_player_id': int(MEDIA_PLAYER_ID),
+                    'label_id': currently_playing_label_id,
+                    'playlist_position': self.current_playlist_position,
+                    'playback_position': vlc_status['position'],
+                    'dropped_audio_frames': vlc_status['stats']['lostabuffers'],
+                    'dropped_video_frames': vlc_status['stats']['lostpictures'],
+                    'duration': vlc_status['length'],
+                    'player_volume': \
                     # Player value 0-256
                     str(vlc_status['volume'] / 256 * 10),
-                    "system_volume": \
+                    'system_volume': \
                     # System value 0-100
                     str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
                 }
@@ -113,21 +115,14 @@ class MediaPlayer():
                 status_client.set_status(
                     DEVICE_UUID,
                     DEVICE_NAME,
-                    currently_playing_resource,
-                    vlc_status['length'],
-                    media_player_status_json['playback_position'],
-                    self.current_playlist_position,
-                    media_player_status_json['label_id'],
-                    media_player_status_json['dropped_audio_frames'],
-                    media_player_status_json['dropped_video_frames'],
-                    media_player_status_json['player_volume'],
-                    media_player_status_json['system_volume'],
+                    str(currently_playing_resource),
+                    media_player_status,
                 )
 
                 # Publish to XOS broker
                 with Connection(AMQP_URL) as conn:
                     producer = conn.Producer(serializer='json')
-                    producer.publish(media_player_status_json,
+                    producer.publish(media_player_status,
                                      exchange=MEDIA_PLAYER_EXCHANGE,
                                      routing_key=ROUTING_KEY,
                                      declare=[PLAYBACK_QUEUE])
@@ -172,7 +167,7 @@ class MediaPlayer():
             balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/\
                 restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
             json = {
-                "serviceName": BALENA_SERVICE_NAME
+                'serviceName': BALENA_SERVICE_NAME
             }
             response = requests.post(balena_api_url, json=json)
             response.raise_for_status()
