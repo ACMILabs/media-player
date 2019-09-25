@@ -33,6 +33,8 @@ BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 SENTRY_ID = os.getenv('SENTRY_ID')
 SUBTITLES = os.getenv('SUBTITLES', 'true')
 VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
+SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
+SYNC_IS_MASTER = os.getenv('SYNC_IS_MASTER', 'false')
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -313,6 +315,21 @@ class MediaPlayer():
             if SUBTITLES == 'false':
                 vlc_display_command.extend([
                     '--no-sub-autodetect-file',
+                ])
+
+            if SYNC_IS_MASTER == 'true':
+                vlc_display_command.extend([
+                    '--control',
+                    'netsync',
+                    '--netsync-master',
+                ])
+
+            if SYNC_CLIENT_TO:
+                vlc_display_command.extend([
+                    '--control',
+                    'netsync',
+                    '--netsync-master-ip',
+                    f'{SYNC_CLIENT_TO}',
                 ])
 
             subprocess.check_output(vlc_display_command + playlist)
