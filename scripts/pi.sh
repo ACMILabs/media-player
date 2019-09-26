@@ -8,12 +8,6 @@ rm /tmp/.X0-lock &>/dev/null || true
 export DISPLAY=:0
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
-# rotate screen if env variable is set [normal, inverted, left or right]
-if [[ ! -z "$ROTATE_DISPLAY" ]]; then
-  echo "YES"
-  (sleep 3 && DISPLAY=:0 xrandr -o $ROTATE_DISPLAY) &
-fi
-
 # start desktop manager
 echo "STARTING X"
 startx &
@@ -28,16 +22,16 @@ sleep 5
 # startx xterm 
 
 # Hide the cursor
-unclutter -display :0 -idle 0.1 &
+# unclutter -display :0 -idle 0.1 &
 
 # Set X background image
-xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/workspace0/last-image --set /code/resources/acmi-1920x1080.png
+# xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/workspace0/last-image --set /code/resources/acmi-1920x1080.png
 
 # Hide X icons
-xfconf-query -c xfce4-desktop -np '/desktop-icons/style' -t 'int' -s '0'
+# xfconf-query -c xfce4-desktop -np '/desktop-icons/style' -t 'int' -s '0'
 
 # Hide X panel
-xfce4-panel -q
+# xfce4-panel -q
 
 # Unmute system audio
 # ./scripts/unmute.sh

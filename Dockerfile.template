@@ -11,17 +11,10 @@ RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools python3
   raspberrypi-ui-mods rpd-icons \
   gtk2-engines-clearlookspix \
   matchbox-keyboard \
-  unclutter \
   # For system volume
   libasound2-dev \
   # Audio
   alsa-utils
-
-# Intel GPU drivers for VLC
-ARG IS_X86
-RUN if [ "$IS_X86" = "true" ]; \
-  then install_packages i965-va-driver vainfo; \
-  fi
 
 # disable lxpolkit popup warning
 RUN mv /usr/bin/lxpolkit /usr/bin/lxpolkit.bak
@@ -31,25 +24,8 @@ RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
   && echo "" >> /etc/X11/xinit/xserverrc \
   && echo 'exec /usr/bin/X -s 0 dpms -nolisten tcp "$@"' >> /etc/X11/xinit/xserverrc
 
-
-# Avoid requesting XFCE4 question on X start
-ENV XFCE_PANEL_MIGRATE_DEFAULT=1
-
-ENV PYTHONUNBUFFERED 1
-
 # Enable udevd so that plugged dynamic hardware devices show up in our container.
 ENV UDEV 1
-
-# Set dbus environment variables
-ENV DISPLAY :0
-ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
-
-# Copy Intel display settings for Dell OptiPlex 3070
-COPY ./conf/20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
-
-# Copy X desktop settings to set the wallpaper
-COPY ./conf/xfce4-desktop.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
-COPY ./conf/xfce4-panel.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
 
 COPY ./requirements.txt /code/requirements.txt
 RUN pip3 install -Ur /code/requirements.txt
