@@ -5,7 +5,7 @@ FROM balenalib/raspberrypi3:buster
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools \
+RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools python3-dev \
   xserver-xorg-core \
   xinit lxsession desktop-file-utils \
   raspberrypi-ui-mods rpd-icons \
@@ -50,9 +50,6 @@ COPY ./conf/20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
 # Copy X desktop settings to set the wallpaper
 COPY ./conf/xfce4-desktop.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
 COPY ./conf/xfce4-panel.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
-
-RUN pip3 install wheel
-RUN python3 setup.py bdist_wheel
 
 COPY ./requirements.txt /code/requirements.txt
 RUN pip3 install -Ur /code/requirements.txt
