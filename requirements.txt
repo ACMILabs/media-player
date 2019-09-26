@@ -1,3 +1,4 @@
+wheel
 pytz
 requests
 kombu
@@ -6,4 +7,3 @@ python-vlc
 sentry-sdk
 pyalsaaudio
 prometheus_client
-wheel
