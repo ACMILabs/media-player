@@ -42,4 +42,4 @@ xfce4-panel -q
 # Unmute system audio
 # ./scripts/unmute.sh
 
-python media_player.py
+python3 media_player.py
