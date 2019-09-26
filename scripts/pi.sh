@@ -3,7 +3,9 @@
 # Allow VLC to run under root
 sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
-export DISPLAY=:0.0
+rm /tmp/.X0-lock &>/dev/null || true
+
+export DISPLAY=:0
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
 # rotate screen if env variable is set [normal, inverted, left or right]
