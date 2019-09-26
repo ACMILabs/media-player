@@ -267,8 +267,8 @@ class MediaPlayer():
         try:
             playlist = self.generate_playlist()
 
-            print(f'Playing video {self.current_playlist_position}: \
-                {playlist[self.current_playlist_position]}')
+            print(f'Playing video {self.current_playlist_position}: '
+                  '{playlist[self.current_playlist_position]}')
             vlc_display_command = [
                 'vlc',
                 '--x11-display',
