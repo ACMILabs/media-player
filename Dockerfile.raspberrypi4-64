@@ -15,7 +15,6 @@ RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools python3
   libasound2-dev \
   # Audio
   alsa-utils \
-  pulseaudio \
   # Remove cursor
   unclutter
 
@@ -33,10 +32,6 @@ RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
 
 # Enable udevd so that plugged dynamic hardware devices show up in our container.
 ENV UDEV 1
-
-# Set dbus environment variables
-ENV DISPLAY :0
-ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 
 COPY ./requirements.txt /code/requirements.txt
 RUN pip3 install -Ur /code/requirements.txt
