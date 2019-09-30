@@ -1,44 +1,62 @@
 # base-image for python on any machine using a template variable,
 # see more about dockerfile templates here: https://www.balena.io/docs/learn/develop/dockerfile/
-# Force Raspberry Pi 3 for 32-bit X
-FROM balenalib/raspberrypi3:buster
+FROM balenalib/%%BALENA_ARCH%%-ubuntu-python:3.7.2-bionic-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools python3-dev \
-  xserver-xorg-core \
-  xinit lxsession desktop-file-utils \
-  raspberrypi-ui-mods rpd-icons \
-  gtk2-engines-clearlookspix \
+RUN install_packages vlc vlc-plugin-* g++ \
+  xserver-xorg \
+  xserver-xorg-input-evdev \
+  xinit \
+  xfce4 \
+  xfce4-terminal \
+  x11-xserver-utils \
+  dbus-x11 \
   matchbox-keyboard \
+  xterm \
+  unclutter \
   # For system volume
   libasound2-dev \
   # Audio
-  alsa-utils \
-  # Remove cursor
-  unclutter
+  alsa-utils
 
-# disable lxpolkit popup warning
-RUN mv /usr/bin/lxpolkit /usr/bin/lxpolkit.bak
-
-# Set wallpaper & hide panel
-COPY /conf/desktop-items-0.conf /root/.config/pcmanfm/LXDE-pi/
-COPY /conf/panel /root/.config/lxpanel/LXDE-pi/panels/
+# Intel GPU drivers for VLC
+ARG IS_X86
+RUN if [ "$IS_X86" = "true" ]; \
+  then install_packages i965-va-driver vainfo; \
+  fi
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
   && echo "" >> /etc/X11/xinit/xserverrc \
-  && echo 'exec /usr/bin/X -s 0 dpms -nolisten tcp "$@"' >> /etc/X11/xinit/xserverrc
+  && echo 'exec /usr/bin/X -s 0 dpms' >> /etc/X11/xinit/xserverrc
+
+# Avoid requesting XFCE4 question on X start
+ENV XFCE_PANEL_MIGRATE_DEFAULT=1
+
+ENV PYTHONUNBUFFERED 1
 
 # Enable udevd so that plugged dynamic hardware devices show up in our container.
 ENV UDEV 1
 
-COPY ./requirements.txt /code/requirements.txt
-RUN pip3 install -Ur /code/requirements.txt
+# Set dbus environment variables
+ENV DISPLAY :0
+ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
+
+# Copy Intel display settings for Dell OptiPlex 3070
+COPY ./conf/20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
+
+# Copy X desktop settings to set the wallpaper
+COPY ./conf/xfce4-desktop.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+COPY ./conf/xfce4-panel.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+
+COPY ./requirements/base.txt /code/requirements/base.txt
+COPY ./requirements/prod.txt /code/requirements/prod.txt
+RUN pip install -Ur /code/requirements/prod.txt
 
 COPY . /code/
 WORKDIR /code/
 
-# main.py will run when container starts up on the device
+# intel.sh will run when container starts up on the device
 # CMD ["bash"]
-CMD ["bash","scripts/pi.sh"]
+CMD ["bash","scripts/intel.sh"]
