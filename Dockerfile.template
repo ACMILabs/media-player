@@ -23,7 +23,7 @@ RUN install_packages vlc vlc-plugin-* g++ \
 # Intel GPU drivers for VLC
 ARG IS_X86
 RUN if [ "$IS_X86" = "true" ]; \
-  then install_packages i965-va-driver vainfo; \
+  then install_packages i965-va-driver vainfo vdpau-va-driver; \
   fi
 
 # Disable screen from turning it off
