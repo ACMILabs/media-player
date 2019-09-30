@@ -21,7 +21,7 @@ RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools python3
   x11-xserver-utils \
   dbus-x11 \
   xterm \
-  unclutter \
+  unclutter
 
 # Avoid requesting XFCE4 question on X start
 ENV XFCE_PANEL_MIGRATE_DEFAULT=1
