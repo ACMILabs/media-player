@@ -84,7 +84,7 @@ class MediaPlayer():
                         if not self.current_playlist_position == idx:
                             self.current_playlist_position = idx
                             print(f'Playing video {self.current_playlist_position}: '
-                                  '{self.generate_playlist()[self.current_playlist_position]}')
+                                  f'{self.generate_playlist()[self.current_playlist_position]}')
 
                 media_player_status_json = {
                     "datetime": self.datetime_now(),
