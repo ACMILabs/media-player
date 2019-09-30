@@ -24,6 +24,10 @@ sleep 5
 # Hide the cursor
 unclutter -display :0 -idle 0.1 &
 
+# Set background image
+export DISPLAY=:0
+pcmanfm --set-wallpaper /code/resources/acmi-1920x1080.png
+
 # Set X background image
 # xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/workspace0/last-image --set /code/resources/acmi-1920x1080.png
 
