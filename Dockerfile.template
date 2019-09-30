@@ -14,7 +14,21 @@ RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools python3
   # For system volume
   libasound2-dev \
   # Audio
-  alsa-utils
+  alsa-utils \
+  # XFCE for startup splash
+  xfce4 \
+  xfce4-terminal \
+  x11-xserver-utils \
+  dbus-x11 \
+  xterm \
+  unclutter \
+
+# Avoid requesting XFCE4 question on X start
+ENV XFCE_PANEL_MIGRATE_DEFAULT=1
+
+# Copy X desktop settings to set the wallpaper
+COPY ./conf/xfce4-desktop.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+COPY ./conf/xfce4-panel.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
 
 # disable lxpolkit popup warning
 RUN mv /usr/bin/lxpolkit /usr/bin/lxpolkit.bak
