@@ -23,6 +23,16 @@ $ balena deploy appName --build --buildArg 'IS_X86=true'
 
 $ balena deploy appName
 
+### Multiple balena remotes
+
+Alternatively you can add multiple `balena` remotes to push to, so to add both the intel and arm applications the commands to run would be:
+
+```bash
+$ git remote set-url balena --push --add g_acmi_developer@git.balena-cloud.com:g_acmi_developer/s__media-player-pi-4.git
+
+$ git remote set-url balena --push --add g_acmi_developer@git.balena-cloud.com:g_acmi_developer/e__media-player-x86.git
+```
+
 ## Testing and linting
 
 1. Build the development container `$ docker-compose up --build`
