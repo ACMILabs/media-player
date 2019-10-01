@@ -21,9 +21,15 @@ RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools python3
 # disable lxpolkit popup warning
 RUN mv /usr/bin/lxpolkit /usr/bin/lxpolkit.bak
 
-# Set wallpaper & hide panel
+# Set wallpaper
 COPY /conf/desktop-items-0.conf /root/.config/pcmanfm/LXDE-pi/
+
+# Autohide panel
 COPY /conf/panel /root/.config/lxpanel/LXDE-pi/panels/
+
+# Hide panel completely
+COPY /conf/autostart /etc/xdg/lxsession/LXDE-pi/
+COPY /conf/autostart /root/.config/lxsession/LXDE-pi/
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
