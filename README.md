@@ -36,9 +36,9 @@ $ balena deploy appName
 Alternatively you can add multiple `balena` remotes to push to, so to add both the intel and arm applications the commands to run would be:
 
 ```bash
-$ git remote set-url balena --push --add g_acmi_developer@git.balena-cloud.com:g_acmi_developer/s__media-player-pi-4.git
+$ git remote set-url balena --push --add <username>@git.balena-cloud.com:<username>/<pi balena app name>.git
 
-$ git remote set-url balena --push --add g_acmi_developer@git.balena-cloud.com:g_acmi_developer/e__media-player-x86.git
+$ git remote set-url balena --push --add <username>@git.balena-cloud.com:<username>/<x86 balena app name>.git
 ```
 
 ## Testing and linting
