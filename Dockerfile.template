@@ -4,7 +4,10 @@ FROM balenalib/%%BALENA_ARCH%%-ubuntu-python:3.7.2-bionic-run
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc vlc-plugin-* g++ \
+RUN install_packages \
+  vlc \
+  vlc-plugin-* \
+  g++ \
   xserver-xorg \
   xserver-xorg-input-evdev \
   xinit \
@@ -18,13 +21,11 @@ RUN install_packages vlc vlc-plugin-* g++ \
   # For system volume
   libasound2-dev \
   # Audio
-  alsa-utils
-
-# Intel GPU drivers for VLC
-ARG IS_X86
-RUN if [ "$IS_X86" = "true" ]; \
-  then install_packages i965-va-driver vainfo; \
-  fi
+  alsa-utils \
+  # Intel GPU drivers for VLC
+  i965-va-driver \
+  vainfo \
+  vdpau-va-driver
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
@@ -54,9 +55,13 @@ COPY ./requirements/base.txt /code/requirements/base.txt
 COPY ./requirements/prod.txt /code/requirements/prod.txt
 RUN pip install -Ur /code/requirements/prod.txt
 
+# Remove the panel completely
+COPY ./conf/xinitrc /etc/xdg/xfce4/
+COPY ./conf/xinitrc /root/.config/xfce4/
+
 COPY . /code/
 WORKDIR /code/
 
-# main.py will run when container starts up on the device
+# x86.sh will run when the container starts up on any non-Raspberry Pi device (i.e. Intel OptiPlex, NUC)
 # CMD ["bash"]
-CMD ["bash","scripts/pi.sh"]
+CMD ["bash","scripts/x86.sh"]

@@ -92,7 +92,7 @@ class MediaPlayer():
                         if not self.current_playlist_position == idx:
                             self.current_playlist_position = idx
                             print(f'Playing video {self.current_playlist_position}: '
-                                  '{self.generate_playlist()[self.current_playlist_position]}')
+                                  f'{self.generate_playlist()[self.current_playlist_position]}')
 
                 media_player_status = {
                     'datetime': self.datetime_now(),
@@ -289,8 +289,8 @@ class MediaPlayer():
         try:
             playlist = self.generate_playlist()
 
-            print(f'Playing video {self.current_playlist_position}: \
-                {playlist[self.current_playlist_position]}')
+            print(f'Playing video {self.current_playlist_position}: '
+                  f'{playlist[self.current_playlist_position]}')
             vlc_display_command = [
                 'vlc',
                 '--x11-display',

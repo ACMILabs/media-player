@@ -13,6 +13,14 @@ Monitoring:
 Error reporting:
 * Posts exceptions and errors to Sentry
 
+## Troubleshooting
+
+When booting up for the first time:
+
+* If you see the Balena loading image (a rounded cube), and don't see your device in Balena Cloud or XOS, then the media player probably doesn't have any internet access. Check the ethernet connection, and reboot the device.
+* If you see the ACMI logo on a black background, then the device has access to the internet and is trying to download video files from XOS. Check the Balena Cloud logs to verify that it's downloading the files you expect, large files take a little while to download. Also verify that you can reach the [XOS playlist API](https://museumos-prod.acmi.net.au/api/playlists/1/).
+* If a default video starts playing with the title ACMI Media Player, then your device is running correctly and can access both XOS & Balena. You can now configure your device to load the content you'd like.
+
 ## Deploying via Balena for both x86 and ARM
 
 ### x86
@@ -22,6 +30,16 @@ $ balena deploy appName --build --buildArg 'IS_X86=true'
 ### ARM
 
 $ balena deploy appName
+
+### Multiple balena remotes
+
+Alternatively you can add multiple `balena` remotes to push to, so to add both the intel and arm applications the commands to run would be:
+
+```bash
+$ git remote set-url balena --push --add <username>@git.balena-cloud.com:<username>/<pi balena app name>.git
+
+$ git remote set-url balena --push --add <username>@git.balena-cloud.com:<username>/<x86 balena app name>.git
+```
 
 ## Testing and linting
 
