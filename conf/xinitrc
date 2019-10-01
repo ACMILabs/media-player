@@ -189,7 +189,7 @@ Please report this to the xfce4-dev@xfce.org list
 or on http://bugs.xfce.org
 Meanwhile the panel will be restarted
 EOF
-                        $panel
+                        #$panel
                         ret=$?
                 done
                 ;;
