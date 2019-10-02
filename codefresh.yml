@@ -1,0 +1,41 @@
+version: '1.0'
+stages:
+  - checkout
+  - package
+  - test
+  - deploy
+steps:
+  main_clone:
+    title: Cloning main repository...
+    type: git-clone
+    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+    revision: '${{CF_REVISION}}'
+    stage: checkout
+  mediaplayer_image:
+    title: Building Docker Image
+    type: build
+    stage: package
+    image_name: mediaplayer
+    working_directory: ./
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
+    dockerfile: ./development/Dockerfile
+  unit_test:
+    title: Running Unit tests
+    image: '${{mediaplayer_image}}'
+    stage: test 
+    commands:
+      - make linttest
+  deploy_to_Balena:
+    title: Deploying repository to Balena
+    image: acmilabs/balena-cli:arm
+    stage: deploy
+    commands:
+      - bash /code/add-key.sh github.com $GITHUB_FINGERPRINT
+      - echo $SSH_KEY | awk '{gsub(/\\n/,"\n")}1' >> keyfile
+      - chmod 600 keyfile
+      - cat keyfile
+      - ssh-agent bash -c 'ssh-add -k keyfile; git clone git@github.com:${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}.git'
+      - cd ${{CF_REPO_NAME}}
+      - balena login --token $BALENA_TOKEN
+      - balena push s__media-player-x86
+      - balena push s__media-player-pi-4
