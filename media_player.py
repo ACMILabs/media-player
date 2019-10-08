@@ -65,10 +65,10 @@ class MediaPlayer():
         self.server_time = 0
 
         if SYNC_IS_MASTER == 'true':
-            network.Server('', 10000, self.vlc_player)
+            network.Server('', 10000, self)
 
         if SYNC_CLIENT_TO:
-            network.Client(SYNC_CLIENT_TO, 10000, self.vlc_player)
+            network.Client(SYNC_CLIENT_TO, 10000, self)
 
     @staticmethod
     def datetime_now():

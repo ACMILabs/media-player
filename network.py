@@ -64,7 +64,7 @@ class Server:
 
     def data_sender(self):
         while True:
-            data = '{},'.format(self.media_player.get_time())
+            data = '{},'.format(self.media_player.vlc_player.get_time())
 
             with futures.ThreadPoolExecutor(max_workers=5) as ex:
                 for client in self.clients:
