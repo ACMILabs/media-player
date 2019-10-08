@@ -394,7 +394,7 @@ class MediaPlayer():
             print('{} - {} = (+-) {}'.format(c_time, s_time, drift))
             if drift > 50:
                 self.vlc_player.set_time(self.server_time)
-            time.sleep(0.2)
+            time.sleep(0.6)
 
 
 if __name__ == "__main__":
