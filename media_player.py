@@ -33,6 +33,8 @@ BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 SENTRY_ID = os.getenv('SENTRY_ID')
 SUBTITLES = os.getenv('SUBTITLES', 'true')
 VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
+SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
+SYNC_IS_MASTER = os.getenv('SYNC_IS_MASTER', 'false')
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -53,7 +55,9 @@ class MediaPlayer():
     """
 
     def __init__(self):
-        self.vlc_player = None
+        self.vlc_instance = vlc.Instance()
+        self.vlc_list_player = self.vlc_instance.media_list_player_new()
+        self.vlc_player = self.vlc_list_player.get_media_player()
         self.playlist = []
         self.current_playlist_position = 0
         self.vlc_connection_attempts = 0
@@ -287,35 +291,36 @@ class MediaPlayer():
         Starts VLC.
         """
         try:
-            playlist = self.generate_playlist()
+            self.vlc_list_player.play()
+            # playlist = self.generate_playlist()
 
-            print(f'Playing video {self.current_playlist_position}: '
-                  f'{playlist[self.current_playlist_position]}')
-            vlc_display_command = [
-                'vlc',
-                '--x11-display',
-                ':0',
-                '--quiet',
-                '--loop',
-                '--fullscreen',
-                '--no-random',
-                '--no-video-title-show',
-                '--video-on-top',
-                '--no-osd',
-                '--extraintf',
-                'http',
-                '--http-password',
-                VLC_PASSWORD,
-            ]
-            if int(USE_PLS_PLAYLIST) == 1:
-                playlist = [self.generate_pls_playlist()]
+            # print(f'Playing video {self.current_playlist_position}: '
+            #       f'{playlist[self.current_playlist_position]}')
+            # vlc_display_command = [
+            #     'vlc',
+            #     '--x11-display',
+            #     ':0',
+            #     '--quiet',
+            #     '--loop',
+            #     '--fullscreen',
+            #     '--no-random',
+            #     '--no-video-title-show',
+            #     '--video-on-top',
+            #     '--no-osd',
+            #     '--extraintf',
+            #     'http',
+            #     '--http-password',
+            #     VLC_PASSWORD,
+            # ]
+            # if int(USE_PLS_PLAYLIST) == 1:
+            #     playlist = [self.generate_pls_playlist()]
 
-            if SUBTITLES == 'false':
-                vlc_display_command.extend([
-                    '--no-sub-autodetect-file',
-                ])
+            # if SUBTITLES == 'false':
+            #     vlc_display_command.extend([
+            #         '--no-sub-autodetect-file',
+            #     ])
 
-            subprocess.check_output(vlc_display_command + playlist)
+            # subprocess.check_output(vlc_display_command + playlist)
 
         except subprocess.CalledProcessError as exception:
             template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
@@ -360,20 +365,22 @@ if __name__ == "__main__":
     media_player = MediaPlayer()
     media_player.download_playlist_from_xos()
 
+    vlc_playlist = media_player.vlc_instance.media_list_new()
+
     # Check if vlc can play the media in self.playlist
     for playlist_item in media_player.playlist:
         video_resource = playlist_item['resource']
-        media_player.vlc_player = vlc.MediaPlayer(video_resource)
-        media = media_player.vlc_player.get_media()
+        media = media_player.vlc_instance.media_new(video_resource)
         media.parse()
         if media.get_duration():
             # OK to play
-            pass
+            vlc_playlist.insert_media(media)
         else:
             print(f'Video doesn\'t seem playable: \
                 {video_resource}, removing from the playlist.')
-            media_player.playlist.remove(playlist_item)
+            # media_player.playlist.remove(playlist_item)
 
+    media_player.vlc_list_player.set_media_list(vlc_playlist)
     vlc_thread = Thread(target=media_player.start_vlc)
     vlc_thread.start()
 
