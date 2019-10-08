@@ -33,7 +33,6 @@ steps:
       - bash /code/add-key.sh github.com $GITHUB_FINGERPRINT
       - echo "$SSH_KEY" | awk '{gsub(/\\n/,"\n")}1' >> keyfile
       - chmod 600 keyfile
-      - cat keyfile
       - ssh-agent bash -c 'ssh-add -k keyfile; git clone git@github.com:${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}.git'
       - cd ${{CF_REPO_NAME}}
       - balena login --token $BALENA_TOKEN
