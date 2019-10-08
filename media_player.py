@@ -292,6 +292,7 @@ class MediaPlayer():
         """
         try:
             self.vlc_player.set_fullscreen(True)
+            self.vlc_instance.set_playback_mode(vlc.PlaybackMode.loop)
             self.vlc_list_player.play()
             # playlist = self.generate_playlist()
 
