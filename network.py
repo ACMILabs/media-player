@@ -64,11 +64,11 @@ class Server:
 
     def data_sender(self):
         while True:
-            data = self.media_player.get_time()
+            data = '{}'.format(self.media_player.get_time())
 
             with futures.ThreadPoolExecutor(max_workers=5) as ex:
                 for client in self.clients:
-                    ex.submit(self.sendall, client, data)
+                    ex.submit(self.sendall, client, data.encode())
 
     def sendall(self, client, data):
         """Wraps socket module's `sendall` function"""
@@ -105,6 +105,7 @@ class Client:
             while True:
                 data = self.sock.recv(64)
                 if data:
+                    data = data.decode()
                     print(data)
                     self.media_player.set_time(int(data))
         except:
