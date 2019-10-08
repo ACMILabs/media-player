@@ -107,7 +107,7 @@ class Client:
                 if data:
                     data = data.decode()
                     pos = data.split(',')[-1]
-                    print(pos, data)
+                    print('pos', pos, 'data', data, 'end')
                     self.media_player.set_time(int(pos))
 
         except:
