@@ -408,7 +408,7 @@ class MediaPlayer():
                     drift_times += 1
                 else:
                     drift_times = 0
-                if drift_times > 30: # remove magic number, maybe add balena var TOLERANCE = 10
+                if drift_times > 40: # remove magic number, maybe add balena var TOLERANCE = 10
                     self.vlc_player.set_time(server_time)
                 time.sleep(0.05)
 
