@@ -69,6 +69,28 @@ class MediaPlayer():
         timezone setting in an ISO 8601 format.
         """
         return datetime.now(PYTZ_TIMEZONE).isoformat()
+    
+    def get_vlc_status(self):
+
+        stats = vlc.MediaStats()
+        media = self.vlc_player.get_media()
+        media.get_stats(stats)
+        return {
+            'information': {
+                'category': {
+                    'meta': {
+                        'filename': media.get_meta(vlc.Meta.Title)
+                    }
+                }
+            },
+            'stats': {
+                'lostabuffers': stats.lost_abuffers,
+                'lostpictures': stats.lost_pictures
+            },
+            'position': self.vlc_player.get_position(),
+            'length': self.vlc_player.get_length(),
+            'volume': self.vlc_player.audio_get_volume(),
+        }
 
     def post_playback_to_broker(self):  # pylint: disable=R0914
         """
@@ -78,11 +100,7 @@ class MediaPlayer():
         while True:
             try:
                 # Get playback status from VLC
-                session = requests.Session()
-                session.auth = ('', VLC_PASSWORD)
-                response = session.get(VLC_URL + 'requests/status.json')
-                response.raise_for_status()
-                vlc_status = response.json()
+                vlc_status = self.get_vlc_status()
 
                 # Match playback filename with label id in self.playlist
                 currently_playing_label_id = None
