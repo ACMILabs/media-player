@@ -1,4 +1,5 @@
 import os
+import queue
 import subprocess
 import time
 from datetime import datetime
@@ -62,13 +63,13 @@ class MediaPlayer():
         self.playlist = []
         self.current_playlist_position = 0
         self.vlc_connection_attempts = 0
-        self.server_time = 0
+        self.queue = queue.Queue()
 
         if SYNC_IS_MASTER == 'true':
-            network.Server('', 10000, self)
+            network.Server('', 10000, self.queue)
 
         if SYNC_CLIENT_TO:
-            network.Client(SYNC_CLIENT_TO, 10000, self)
+            network.Client(SYNC_CLIENT_TO, 10000, self.queue)
 
     @staticmethod
     def datetime_now():
@@ -387,14 +388,30 @@ class MediaPlayer():
             sentry_sdk.capture_exception(exception)
     
     def sync_to_server(self):
-        while True:
-            s_time = self.server_time
-            c_time = self.vlc_player.get_position()
-            drift = abs(c_time - s_time)
-            print('{} - {} = (+-) {}'.format(c_time, s_time, drift))
-            if drift > 0.01:
-                self.vlc_player.set_position(self.server_time)
-            time.sleep(0.6)
+
+        if SYNC_CLIENT_TO:
+            while True:
+                server_time = None
+                while True:
+                    try:
+                        server_time = self.queue.get(block=False)
+                    except queue.Empty:
+                        pass
+                if not server_time:
+                    time.sleep(0.1)
+                    continue
+                client_time = self.vlc_player.get_time()
+                drift = abs(client_time - server_time)
+                print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
+                if drift > 50:
+                    self.vlc_player.set_time(server_time)
+                time.sleep(0.1)
+
+        if SYNC_IS_MASTER:
+            while True:
+                self.queue.put(self.vlc_player.get_time())
+                time.sleep(0.01)
+
 
 
 if __name__ == "__main__":
@@ -422,9 +439,8 @@ if __name__ == "__main__":
     vlc_thread = Thread(target=media_player.start_vlc)
     vlc_thread.start()
 
-    if SYNC_CLIENT_TO:
-        sync_thread = Thread(target=media_player.sync_to_server)
-        sync_thread.start()
+    sync_thread = Thread(target=media_player.sync_to_server)
+    sync_thread.start()
 
     # Wait for VLC to launch
     time.sleep(5)

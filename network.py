@@ -33,9 +33,9 @@ logger.addHandler(ch)
 class Server:
     """Data sender server"""
 
-    def __init__(self, host, port, media_player):
+    def __init__(self, host, port, queue):
 
-        self.media_player = media_player
+        self.queue = queue
         # Create a TCP/IP socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -65,7 +65,7 @@ class Server:
 
     def data_sender(self):
         while True:
-            data = '{},'.format(self.media_player.vlc_player.get_position())
+            data = '{},'.format(self.queue.get())
 
             with futures.ThreadPoolExecutor(max_workers=5) as ex:
                 for client in self.clients:
@@ -84,8 +84,8 @@ class Server:
 class Client:
     """Data receiver client"""
 
-    def __init__(self, address, port, media_player):
-        self.media_player = media_player
+    def __init__(self, address, port, queue):
+        self.queue = queue
 
         # Create a TCP/IP socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -109,7 +109,7 @@ class Client:
                     data = data.decode()
                     pos = data.split(',')[-2]
                     print('pos: {} data: {}'.format(pos, data))
-                    self.media_player.server_time = float(pos)
+                    self.queue.put(int(pos))
 
         except:
             logger.exception("Closing socket: %s", self.sock)
