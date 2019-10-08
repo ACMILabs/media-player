@@ -107,8 +107,9 @@ class Client:
                 if data:
                     data = data.decode()
                     pos = data.split(',')[-1]
+                    print(pos, data)
                     self.media_player.set_time(int(pos))
-                    
+
         except:
             logger.exception("Closing socket: %s", self.sock)
             self.sock.close()
