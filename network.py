@@ -68,7 +68,7 @@ class Server:
 
             with futures.ThreadPoolExecutor(max_workers=5) as ex:
                 for client in self.clients:
-                    ex.submit(self.sendall, client, data.encode())
+                    ex.submit(self.sendall, client, data)
 
     def sendall(self, client, data):
         """Wraps socket module's `sendall` function"""
@@ -105,7 +105,6 @@ class Client:
             while True:
                 data = self.sock.recv(64)
                 if data:
-                    data = data.decode()
                     self.media_player.set_position(float(data))
         except:
             logger.exception("Closing socket: %s", self.sock)
