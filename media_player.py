@@ -374,7 +374,7 @@ if __name__ == "__main__":
         media.parse()
         if media.get_duration():
             # OK to play
-            vlc_playlist.insert_media(media)
+            vlc_playlist.add_media(media)
         else:
             print(f'Video doesn\'t seem playable: \
                 {video_resource}, removing from the playlist.')
