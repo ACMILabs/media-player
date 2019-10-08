@@ -70,7 +70,6 @@ class Server:
             with futures.ThreadPoolExecutor(max_workers=5) as ex:
                 for client in self.clients:
                     ex.submit(self.sendall, client, data.encode())
-            time.sleep(0.1)
 
     def sendall(self, client, data):
         """Wraps socket module's `sendall` function"""
