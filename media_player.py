@@ -408,7 +408,7 @@ class MediaPlayer():
                     drift_times += 1
                 else:
                     drift_times = 0
-                if drift_times > 3:
+                if drift_times > 10:
                     self.vlc_player.set_time(server_time)
                 time.sleep(0.1)
 
