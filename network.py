@@ -105,6 +105,7 @@ class Client:
             while True:
                 data = self.sock.recv(64)
                 if data:
+                    print(data)
                     self.media_player.set_time(int(data))
         except:
             logger.exception("Closing socket: %s", self.sock)
