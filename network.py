@@ -65,7 +65,7 @@ class Server:
 
     def data_sender(self):
         while True:
-            data = '{},'.format(self.media_player.vlc_player.get_time())
+            data = '{},'.format(self.media_player.vlc_player.get_position())
 
             with futures.ThreadPoolExecutor(max_workers=5) as ex:
                 for client in self.clients:
@@ -109,7 +109,7 @@ class Client:
                     data = data.decode()
                     pos = data.split(',')[-2]
                     print('pos: {} data: {}'.format(pos, data))
-                    self.media_player.server_time = int(pos)
+                    self.media_player.server_time = float(pos)
 
         except:
             logger.exception("Closing socket: %s", self.sock)

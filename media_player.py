@@ -389,11 +389,11 @@ class MediaPlayer():
     def sync_to_server(self):
         while True:
             s_time = self.server_time
-            c_time = self.vlc_player.get_time()
+            c_time = self.vlc_player.get_position()
             drift = abs(c_time - s_time)
             print('{} - {} = (+-) {}'.format(c_time, s_time, drift))
-            if drift > 50:
-                self.vlc_player.set_time(self.server_time)
+            if drift > 0.01:
+                self.vlc_player.set_position(self.server_time)
             time.sleep(0.6)
 
 
