@@ -64,7 +64,7 @@ class Server:
 
     def data_sender(self):
         while True:
-            data = "{}".format(self.media_player.get_position())
+            data = self.media_player.get_time()
 
             with futures.ThreadPoolExecutor(max_workers=5) as ex:
                 for client in self.clients:
@@ -105,7 +105,7 @@ class Client:
             while True:
                 data = self.sock.recv(64)
                 if data:
-                    self.media_player.set_position(float(data))
+                    self.media_player.set_time(int(data))
         except:
             logger.exception("Closing socket: %s", self.sock)
             self.sock.close()
