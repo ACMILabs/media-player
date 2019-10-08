@@ -106,7 +106,7 @@ class Client:
                 data = self.sock.recv(4096)
                 if data:
                     data = data.decode()
-                    pos = data.split(',')[-1]
+                    pos = data.split(',')[-2]
                     print('pos', pos, 'data', data, 'end')
                     self.media_player.set_time(int(pos))
 
