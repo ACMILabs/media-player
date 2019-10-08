@@ -62,6 +62,7 @@ class MediaPlayer():
         self.playlist = []
         self.current_playlist_position = 0
         self.vlc_connection_attempts = 0
+        self.server_time = 0
 
         if SYNC_IS_MASTER == 'true':
             network.Server('', 10000, self.vlc_player)
@@ -384,6 +385,11 @@ class MediaPlayer():
                 {XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID}'
             print(message)
             sentry_sdk.capture_exception(exception)
+    
+    def sync_to_server(self):
+        while True:
+            self.vlc_player.set_time(self.server_time)
+            time.sleep(0.1)
 
 
 if __name__ == "__main__":
@@ -410,6 +416,10 @@ if __name__ == "__main__":
     media_player.vlc_list_player.set_media_list(vlc_playlist)
     vlc_thread = Thread(target=media_player.start_vlc)
     vlc_thread.start()
+
+    if SYNC_CLIENT_TO:
+        sync_thread = Thread(target=media_player.sync_to_server)
+        sync_thread.start()
 
     # Wait for VLC to launch
     time.sleep(5)
