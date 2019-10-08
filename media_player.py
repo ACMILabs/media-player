@@ -388,8 +388,8 @@ class MediaPlayer():
     
     def sync_to_server(self):
         while True:
-            print(self.server_time)
-            self.vlc_player.set_time(self.server_time)
+            if abs(self.vlc_player.get_time() - self.server_time) > 20:
+                self.vlc_player.set_time(self.server_time)
             time.sleep(0.1)
 
 
