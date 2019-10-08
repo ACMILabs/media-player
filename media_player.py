@@ -396,7 +396,7 @@ class MediaPlayer():
                     try:
                         server_time = self.queue.get(block=False)
                     except queue.Empty:
-                        pass
+                        break
                 if not server_time:
                     time.sleep(0.1)
                     continue
