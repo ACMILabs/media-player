@@ -388,6 +388,7 @@ class MediaPlayer():
     
     def sync_to_server(self):
         while True:
+            print(self.server_time)
             self.vlc_player.set_time(self.server_time)
             time.sleep(0.1)
 
