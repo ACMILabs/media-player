@@ -291,6 +291,7 @@ class MediaPlayer():
         Starts VLC.
         """
         try:
+            self.vlc_player.set_fullscreen(True)
             self.vlc_list_player.play()
             # playlist = self.generate_playlist()
 
