@@ -108,7 +108,7 @@ class Client:
                 if data:
                     data = data.decode()
                     pos = data.split(',')[-2]
-                    print('pos: {} data: {}'.format(pos, data))
+                    # print('pos: {} data: {}'.format(pos, data))
                     self.queue.put(int(pos))
 
         except:
