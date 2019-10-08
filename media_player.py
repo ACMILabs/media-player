@@ -13,6 +13,7 @@ import sentry_sdk
 import vlc
 from kombu import Connection, Exchange, Queue
 
+import network
 import status_client
 
 XOS_PLAYLIST_ENDPOINT = os.getenv('XOS_PLAYLIST_ENDPOINT')
@@ -61,6 +62,12 @@ class MediaPlayer():
         self.playlist = []
         self.current_playlist_position = 0
         self.vlc_connection_attempts = 0
+
+        if SYNC_IS_MASTER == 'true':
+            network.Server('', 10000, self.vlc_player)
+
+        if SYNC_CLIENT_TO:
+            network.Client(SYNC_CLIENT_TO, 10000, self.vlc_player)
 
     @staticmethod
     def datetime_now():
