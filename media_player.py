@@ -399,18 +399,18 @@ class MediaPlayer():
                     except queue.Empty:
                         break
                 if not server_time:
-                    time.sleep(0.1)
+                    time.sleep(0.05)
                     continue
                 client_time = self.vlc_player.get_time()
                 drift = abs(client_time - server_time)
                 print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
-                if drift > 50:
+                if drift > 50: # should calculate using get_fps() or similar instead of 50
                     drift_times += 1
                 else:
                     drift_times = 0
-                if drift_times > 10:
+                if drift_times > 30: # remove magic number, maybe add balena var TOLERANCE = 10
                     self.vlc_player.set_time(server_time)
-                time.sleep(0.1)
+                time.sleep(0.05)
 
         if SYNC_IS_MASTER:
             while True:
