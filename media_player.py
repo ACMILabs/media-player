@@ -424,9 +424,13 @@ class MediaPlayer():
                     self.vlc_player.set_time(server_time + self.network_latency)
 
         if SYNC_IS_MASTER:
+            previous_time = self.get_current_time()
             while True:
-                self.queue.put(self.get_current_time())
-                time.sleep(1)
+                player_time = self.get_current_time()
+                if previous_time != player_time:
+                    if player_time % 1000:
+                        self.queue.put(player_time)
+                    previous_time = player_time
 
 
 
