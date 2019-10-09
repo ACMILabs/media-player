@@ -403,8 +403,8 @@ class MediaPlayer():
                     print(f'Second drift = {drift}. Synching...')
                     self.network_latency = abs(drift)
                 elif self.sync_count > 5: # latency is a moving average
-                    self.network_latency = int(drift * 0.1 + self.network_latency * 0.9)
-                    print(f'Latency = {self.network_latency}')
+                    # self.network_latency = int(drift * 0.1 + self.network_latency * 0.9)
+                    print(f'Drift = {drift}')
                 self.sync_count += 1
                 
                 if abs(drift) > int(SYNC_DRIFT_THRESHOLD): # should calculate using get_fps() or similar instead of 50
