@@ -409,7 +409,7 @@ class MediaPlayer():
             while True:
                 client_time = self.get_current_time()
                 try:
-                    server_time = self.queue.get()
+                    server_time = self.queue.get(block=False)
                 except queue.Empty:
                     continue
 
