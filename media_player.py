@@ -396,7 +396,7 @@ class MediaPlayer():
                 client_time = self.vlc_player.get_time()
                 drift = abs(client_time - server_time)
                 print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
-                if drift > SYNC_DRIFT_THRESHOLD: # should calculate using get_fps() or similar instead of 50
+                if drift > int(SYNC_DRIFT_THRESHOLD): # should calculate using get_fps() or similar instead of 50
                     self.vlc_player.set_time(server_time)
 
         if SYNC_IS_MASTER:
