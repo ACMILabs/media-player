@@ -69,6 +69,9 @@ class MediaPlayer():
         self.sync_count = 0
         self.network_latency = 0
 
+        self.last_reported_time = 0
+        self.last_measured_time = 0
+
         if SYNC_IS_MASTER == 'true':
             network.Server('', 10000, self.queue)
 
@@ -391,11 +394,21 @@ class MediaPlayer():
             print(message)
             sentry_sdk.capture_exception(exception)
     
+    def get_current_time(self):
+        reported_time = self.vlc_player.get_time()
+
+        if self.last_reported_time == reported_time and self.last_reported_time != 0:
+            reported_time += int(time.time() * 1000) - self.last_measured_time
+        else:
+            self.last_reported_time = reported_time
+            self.last_measured_time = int(time.time() * 1000)
+        return reported_time
+
     def sync_to_server(self):
         if SYNC_CLIENT_TO:
             while True:
                 server_time = self.queue.get()
-                client_time = self.vlc_player.get_time()
+                client_time = self.get_current_time()
                 drift = client_time - server_time - self.network_latency
                 print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
                 
@@ -412,7 +425,7 @@ class MediaPlayer():
 
         if SYNC_IS_MASTER:
             while True:
-                self.queue.put(self.vlc_player.get_time())
+                self.queue.put(self.get_current_time())
                 time.sleep(1)
 
 
