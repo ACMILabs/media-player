@@ -428,7 +428,7 @@ class MediaPlayer():
             while True:
                 player_time = self.get_current_time()
                 if previous_time != player_time:
-                    if player_time % 1000:
+                    if player_time % 1000 == 0:
                         self.queue.put(player_time)
                     previous_time = player_time
 
@@ -458,11 +458,6 @@ if __name__ == "__main__":
     media_player.vlc_list_player.set_media_list(vlc_playlist)
     vlc_thread = Thread(target=media_player.start_vlc)
     vlc_thread.start()
-
-    # Run both players for a second to get a frame accurate timestamp
-    t0 = time.time()
-    while time.time() - t0 < 1.0:
-        media_player.get_current_time()
 
     sync_thread = Thread(target=media_player.sync_to_server)
     sync_thread.start()
