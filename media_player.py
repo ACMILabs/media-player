@@ -397,15 +397,18 @@ class MediaPlayer():
                 server_time = self.queue.get()
                 client_time = self.vlc_player.get_time()
                 drift = abs(client_time - server_time)
-                print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
+                # print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
                 if drift > int(SYNC_DRIFT_THRESHOLD): # should calculate using get_fps() or similar instead of 50
                     self.vlc_player.set_time(server_time + self.network_latency)
-                    print(f'Drift = {drift}. Synching...')
                     if self.sync_stage == 0: # drift could be anything at this point, so ignore
                         self.sync_stage = 1
                     elif self.sync_stage == 1: # this drift measurement is the network latency
+                        print(f'Second drift = {drift}. Synching...')
                         self.network_latency = drift
                         self.sync_stage = 2
+                    elif self.sync_stage == 2: # latency is a moving average
+                        self.network_latency = drift * 0.1 + self.network_latency * 0.9
+                        print(f'Latency = {self.network_latency}')
 
         if SYNC_IS_MASTER:
             while True:
