@@ -455,6 +455,11 @@ if __name__ == "__main__":
     vlc_thread = Thread(target=media_player.start_vlc)
     vlc_thread.start()
 
+    # Run both players for a second to get a frame accurate timestamp
+    t0 = time.time()
+    while time.time() - t0 < 1.0:
+        media_player.get_current_time()
+
     sync_thread = Thread(target=media_player.sync_to_server)
     sync_thread.start()
 
