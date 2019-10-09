@@ -38,7 +38,7 @@ VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_MASTER = os.getenv('SYNC_IS_MASTER', 'false')
 SYNC_TOLERANCE = os.getenv('SYNC_TOLERANCE', '20')
-SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '25') # threshold in milliseconds
+SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40') # threshold in milliseconds
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
