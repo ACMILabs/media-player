@@ -38,6 +38,7 @@ VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_MASTER = os.getenv('SYNC_IS_MASTER', 'false')
 SYNC_TOLERANCE = os.getenv('SYNC_TOLERANCE', '20')
+SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '500')
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -389,34 +390,19 @@ class MediaPlayer():
             sentry_sdk.capture_exception(exception)
     
     def sync_to_server(self):
-
         if SYNC_CLIENT_TO:
-            drift_times = 0
             while True:
-                server_time = None
-                while True:
-                    try:
-                        server_time = self.queue.get(block=False)
-                    except queue.Empty:
-                        break
-                if not server_time:
-                    time.sleep(0.05)
-                    continue
+                server_time = self.queue.get()
                 client_time = self.vlc_player.get_time()
                 drift = abs(client_time - server_time)
                 print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
-                if drift > 50: # should calculate using get_fps() or similar instead of 50
-                    drift_times += 1
-                else:
-                    drift_times = 0
-                if drift_times > int(SYNC_TOLERANCE): # remove magic number, maybe add balena var TOLERANCE = 10
+                if drift > SYNC_DRIFT_THRESHOLD: # should calculate using get_fps() or similar instead of 50
                     self.vlc_player.set_time(server_time)
-                time.sleep(0.05)
 
         if SYNC_IS_MASTER:
             while True:
                 self.queue.put(self.vlc_player.get_time())
-                time.sleep(0.01)
+                time.sleep(1)
 
 
 
