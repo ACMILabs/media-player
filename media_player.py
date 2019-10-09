@@ -407,8 +407,12 @@ class MediaPlayer():
     def sync_to_server(self):
         if SYNC_CLIENT_TO:
             while True:
-                server_time = self.queue.get()
                 client_time = self.get_current_time()
+                try:
+                    server_time = self.queue.get()
+                except queue.Empty:
+                    continue
+
                 drift = client_time - server_time - self.network_latency
                 print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
                 
