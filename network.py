@@ -74,7 +74,7 @@ class Server:
     def sendall(self, client, data):
         """Wraps socket module's `sendall` function"""
         try:
-            client.sendall(data)
+            client.send(data)
         except socket.error:
             logger.exception("Connection to client: %s was broken!", client)
             client.close()
