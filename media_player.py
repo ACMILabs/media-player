@@ -399,10 +399,10 @@ class MediaPlayer():
                 drift = client_time - server_time - self.network_latency
                 print('{} - {} = (+-) {}'.format(client_time, server_time, drift))
                 
-                if self.sync_count == 1: # this drift measurement is the network latency
+                if self.sync_count == 5: # this drift measurement is the network latency
                     print(f'Second drift = {drift}. Synching...')
                     self.network_latency = abs(drift)
-                elif self.sync_count >= 2: # latency is a moving average
+                elif self.sync_count > 5: # latency is a moving average
                     self.network_latency = drift * 0.1 + self.network_latency * 0.9
                     print(f'Latency = {self.network_latency}')
                 self.sync_count += 1
