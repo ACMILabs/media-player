@@ -407,7 +407,7 @@ class MediaPlayer():
                         self.network_latency = drift
                         self.sync_stage = 2
                     elif self.sync_stage == 2: # latency is a moving average
-                        self.network_latency = drift * 0.1 + self.network_latency * 0.9
+                        self.network_latency = int(drift * 0.1 + self.network_latency * 0.9)
                         print(f'Latency = {self.network_latency}')
 
         if SYNC_IS_MASTER:
