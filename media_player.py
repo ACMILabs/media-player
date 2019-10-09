@@ -37,6 +37,7 @@ SUBTITLES = os.getenv('SUBTITLES', 'true')
 VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_MASTER = os.getenv('SYNC_IS_MASTER', 'false')
+SYNC_TOLERANCE = os.getenv('SYNC_TOLERANCE', '20')
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -408,7 +409,7 @@ class MediaPlayer():
                     drift_times += 1
                 else:
                     drift_times = 0
-                if drift_times > 40: # remove magic number, maybe add balena var TOLERANCE = 10
+                if drift_times > int(SYNC_TOLERANCE): # remove magic number, maybe add balena var TOLERANCE = 10
                     self.vlc_player.set_time(server_time)
                 time.sleep(0.05)
 
