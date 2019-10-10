@@ -65,7 +65,6 @@ class MediaPlayer():
         self.current_playlist_position = 0
         self.vlc_connection_attempts = 0
         self.queue = queue.Queue()
-        self.sync_count = 0
 
         self.last_reported_time = 0
         self.last_measured_time = 0
@@ -393,6 +392,11 @@ class MediaPlayer():
             sentry_sdk.capture_exception(exception)
     
     def get_current_time(self):
+        """
+        Function to interpolate VLC player's play time.
+        This is to overcome the limitation where the get_time() function only returns
+        a value every 250 ms.
+        """
         reported_time = self.vlc_player.get_time()
 
         if self.last_reported_time == reported_time and self.last_reported_time != 0:
@@ -411,7 +415,7 @@ class MediaPlayer():
                 except queue.Empty:
                     continue
 
-                if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD): # should calculate using get_fps() or similar instead of 50
+                if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD): # drift threshold could be calculated using get_fps() instead
                     self.vlc_player.set_time(server_time)
 
         if SYNC_IS_MASTER:
