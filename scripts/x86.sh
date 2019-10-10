@@ -12,6 +12,9 @@ if [[ ! -z "$ROTATE_DISPLAY" ]]; then
   (sleep 3 && DISPLAY=:0 xrandr -o $ROTATE_DISPLAY) &
 fi
 
+# Set display to 4K
+# xrandr --output HDMI-1 --mode 3840x2160
+
 # start desktop manager
 echo "STARTING X"
 startx &
