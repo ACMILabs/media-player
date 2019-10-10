@@ -37,7 +37,6 @@ SUBTITLES = os.getenv('SUBTITLES', 'true')
 VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_MASTER = os.getenv('SYNC_IS_MASTER', 'false')
-SYNC_TOLERANCE = os.getenv('SYNC_TOLERANCE', '20')
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40') # threshold in milliseconds
 
 # Setup Sentry
@@ -67,7 +66,6 @@ class MediaPlayer():
         self.vlc_connection_attempts = 0
         self.queue = queue.Queue()
         self.sync_count = 0
-        self.network_latency = 0
 
         self.last_reported_time = 0
         self.last_measured_time = 0
@@ -413,21 +411,8 @@ class MediaPlayer():
                 except queue.Empty:
                     continue
 
-                client_time = self.get_current_time()
-                drift = client_time - server_time# - self.network_latency
-                
-                print('{} - {} - {} = {}'.format(client_time, server_time, self.network_latency, drift))
-                
-                # if self.sync_count == 5: # this drift measurement is the network latency
-                #     print(f'Second drift = {drift}. Synching...')
-                #     self.network_latency = drift
-                # elif self.sync_count > 5: # latency is a moving average
-                #     self.network_latency = int((self.network_latency + drift) * 0.1 + self.network_latency * 0.9)
-                #     print(f'Drift = {drift}')
-                # self.sync_count += 1
-                
-                if abs(drift) > int(SYNC_DRIFT_THRESHOLD): # should calculate using get_fps() or similar instead of 50
-                    self.vlc_player.set_time(server_time + self.network_latency)
+                if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD): # should calculate using get_fps() or similar instead of 50
+                    self.vlc_player.set_time(server_time)
 
         if SYNC_IS_MASTER:
             previous_time = self.get_current_time()
