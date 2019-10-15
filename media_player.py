@@ -45,6 +45,9 @@ ROUTING_KEY = f'mediaplayer.{MEDIA_PLAYER_ID}'
 MEDIA_PLAYER_EXCHANGE = Exchange('amq.topic', 'direct', durable=True)
 PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=ROUTING_KEY)
 
+# Save resources to a persistent storage location
+RESOURCES_PATH = '/data/'
+
 
 class MediaPlayer():
     """
@@ -189,11 +192,10 @@ class MediaPlayer():
         """
         Downloads the resources for the specified playlist label.
         """
-        resources_path = 'resources/'
         try:
             resource_url = playlist_label.get('resource')
             video_filename = os.path.basename(urlparse(resource_url).path)
-            local_video_path = resources_path + video_filename
+            local_video_path = RESOURCES_PATH + video_filename
 
             if resource_url and self.resource_needs_downloading(local_video_path):
                 print(f'{video_filename} not available locally, attempting to download it now.')
@@ -205,7 +207,7 @@ class MediaPlayer():
         try:
             subtitles_url = playlist_label.get('subtitles')
             subtitles_filename = os.path.basename(urlparse(subtitles_url).path)
-            local_subtitles_path = resources_path + subtitles_filename
+            local_subtitles_path = RESOURCES_PATH + subtitles_filename
 
             if subtitles_url and self.resource_needs_downloading(local_subtitles_path):
                 self.download_file(subtitles_url)

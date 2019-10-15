@@ -68,8 +68,8 @@ def test_download_playlist_from_xos(mock_get):
     playlist = media_player.playlist
 
     assert len(playlist) == 3
-    assert playlist[0]['resource'] == 'resources/sample.mp4'
-    assert playlist[0]['subtitles'] == 'resources/sample.srt'
+    assert playlist[0]['resource'] == '/data/sample.mp4'
+    assert playlist[0]['subtitles'] == '/data/sample.srt'
 
 
 @patch('requests.get', side_effect=mocked_requests_get)
