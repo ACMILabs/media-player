@@ -90,3 +90,17 @@ def test_generate_pls_playlist(mock_get):
     assert 'File3=sample.mp4' in pls_playlist
     assert 'NumberOfEntries=3' in pls_playlist
     assert 'Version=2' in pls_playlist
+
+
+@patch('requests.get', side_effect=mocked_requests_get)
+def test_delete_unneeded_resources(mock_get):
+    """
+    Test delete_unneeded_resources() deletes the expected files.
+    """
+
+    media_player = MediaPlayer()
+    playlist = json.loads(file_to_string_strip_new_lines('data/playlist.json'))['playlist_labels']
+    files_deleted = media_player.delete_unneeded_resources(playlist)
+
+    assert len(files_deleted) == 1
+    assert 'playlist.pls' in files_deleted

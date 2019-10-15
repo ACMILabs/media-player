@@ -180,6 +180,32 @@ class MediaPlayer():
             sentry_sdk.capture_exception(exception)
 
     @staticmethod
+    def delete_unneeded_resources(playlist):
+        """
+        Deletes unneeded resources from old playlists.
+        """
+        resources_on_filesystem = []
+        for item in os.listdir(RESOURCES_PATH):
+            if os.path.isfile(os.path.join(RESOURCES_PATH, item)):
+                resources_on_filesystem.append(item)
+
+        resources_from_playlist = []
+        for item in playlist:
+            resource = urlparse(item.get('resource')).path.split('/')[-1]
+            if resource:
+                resources_from_playlist.append(resource)
+            subtitles = urlparse(item.get('subtitles')).path.split('/')[-1]
+            if subtitles:
+                resources_from_playlist.append(subtitles)
+
+        unneeded_files = list(set(resources_on_filesystem) - set(resources_from_playlist))
+        for item in unneeded_files:
+            file_to_delete = os.path.join(RESOURCES_PATH, item)
+            print(f'Deleting unneeded media file: {file_to_delete}')
+            os.remove(file_to_delete)
+        return unneeded_files
+
+    @staticmethod
     def resource_needs_downloading(resource_path):
         """
         Checks whether the resource exists.
@@ -340,6 +366,9 @@ class MediaPlayer():
             response = requests.get(XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID)
             response.raise_for_status()
             playlist_labels = response.json()['playlist_labels']
+
+            # Delete unneeded files from the filesystem
+            self.delete_unneeded_resources(playlist_labels)
 
             # Download resources if they aren't available locally
             for item in playlist_labels:

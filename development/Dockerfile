@@ -46,7 +46,8 @@ COPY ./requirements/test.txt /code/requirements/test.txt
 RUN pip install -Ur /code/requirements/test.txt
 
 RUN mkdir /data
-COPY ./resources/ /data/
+COPY ./resources/*.mp4 /data/
+COPY ./resources/*.srt /data/
 
 COPY . /code/
 WORKDIR /code/
