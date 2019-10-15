@@ -194,13 +194,13 @@ class MediaPlayer():
             try:
                 resource = urlparse(item.get('resource')).path.split('/')[-1]
             except TypeError:
-                pass
+                resource = None
             if resource:
                 resources_from_playlist.append(resource)
             try:
                 subtitles = urlparse(item.get('subtitles')).path.split('/')[-1]
             except TypeError:
-                pass
+                subtitles = None
             if subtitles:
                 resources_from_playlist.append(subtitles)
 
