@@ -191,10 +191,16 @@ class MediaPlayer():
 
         resources_from_playlist = []
         for item in playlist:
-            resource = urlparse(item.get('resource')).path.split('/')[-1]
+            try:
+                resource = urlparse(item.get('resource')).path.split('/')[-1]
+            except TypeError:
+                pass
             if resource:
                 resources_from_playlist.append(resource)
-            subtitles = urlparse(item.get('subtitles')).path.split('/')[-1]
+            try:
+                subtitles = urlparse(item.get('subtitles')).path.split('/')[-1]
+            except TypeError:
+                pass
             if subtitles:
                 resources_from_playlist.append(subtitles)
 
