@@ -238,12 +238,12 @@ class MediaPlayer():
                 local_filename = urlparse(url).path.split('/')[-1]
 
                 # Make the resources directory if it doesn't exist
-                if not os.path.exists('resources'):
-                    os.makedirs('resources')
+                if not os.path.exists(RESOURCES_PATH):
+                    os.makedirs(RESOURCES_PATH)
 
                 with requests.get(url, stream=True) as response:
                     response.raise_for_status()
-                    with open('resources/' + local_filename, 'wb') as open_file:
+                    with open(RESOURCES_PATH + local_filename, 'wb') as open_file:
                         for chunk in response.iter_content(chunk_size=8192):
                             if chunk:  # filter out keep-alive new chunks
                                 open_file.write(chunk)
@@ -263,7 +263,7 @@ class MediaPlayer():
         """
         Generates a playlist.pls file and returns the filename.
         """
-        pls_filename = 'resources/playlist.pls'
+        pls_filename = RESOURCES_PATH + 'playlist.pls'
         pls_string = '[playlist]\n'
         for idx, item in enumerate(self.playlist, start=1):
             pls_string += (f"File{idx}={item['resource'].split('/')[-1]}\n")
