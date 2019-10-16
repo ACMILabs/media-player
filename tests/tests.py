@@ -104,3 +104,10 @@ def test_delete_unneeded_resources(mock_get):
 
     assert len(files_deleted) == 1
     assert 'playlist.pls' in files_deleted
+
+    playlist_2 = json.loads(file_to_string_strip_new_lines('data/playlist-2.json'))['playlist_labels']
+    files_deleted_2 = media_player.delete_unneeded_resources(playlist_2)
+
+    assert len(files_deleted_2) == 2
+    assert 'sample.mp4' in files_deleted_2
+    assert 'sample.srt' in files_deleted_2
