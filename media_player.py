@@ -45,6 +45,9 @@ ROUTING_KEY = f'mediaplayer.{MEDIA_PLAYER_ID}'
 MEDIA_PLAYER_EXCHANGE = Exchange('amq.topic', 'direct', durable=True)
 PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=ROUTING_KEY)
 
+# Save resources to a persistent storage location
+RESOURCES_PATH = '/data/'
+
 
 class MediaPlayer():
     """
@@ -189,11 +192,10 @@ class MediaPlayer():
         """
         Downloads the resources for the specified playlist label.
         """
-        resources_path = 'resources/'
         try:
             resource_url = playlist_label.get('resource')
             video_filename = os.path.basename(urlparse(resource_url).path)
-            local_video_path = resources_path + video_filename
+            local_video_path = RESOURCES_PATH + video_filename
 
             if resource_url and self.resource_needs_downloading(local_video_path):
                 print(f'{video_filename} not available locally, attempting to download it now.')
@@ -205,7 +207,7 @@ class MediaPlayer():
         try:
             subtitles_url = playlist_label.get('subtitles')
             subtitles_filename = os.path.basename(urlparse(subtitles_url).path)
-            local_subtitles_path = resources_path + subtitles_filename
+            local_subtitles_path = RESOURCES_PATH + subtitles_filename
 
             if subtitles_url and self.resource_needs_downloading(local_subtitles_path):
                 self.download_file(subtitles_url)
@@ -236,12 +238,12 @@ class MediaPlayer():
                 local_filename = urlparse(url).path.split('/')[-1]
 
                 # Make the resources directory if it doesn't exist
-                if not os.path.exists('resources'):
-                    os.makedirs('resources')
+                if not os.path.exists(RESOURCES_PATH):
+                    os.makedirs(RESOURCES_PATH)
 
                 with requests.get(url, stream=True) as response:
                     response.raise_for_status()
-                    with open('resources/' + local_filename, 'wb') as open_file:
+                    with open(RESOURCES_PATH + local_filename, 'wb') as open_file:
                         for chunk in response.iter_content(chunk_size=8192):
                             if chunk:  # filter out keep-alive new chunks
                                 open_file.write(chunk)
@@ -261,7 +263,7 @@ class MediaPlayer():
         """
         Generates a playlist.pls file and returns the filename.
         """
-        pls_filename = 'resources/playlist.pls'
+        pls_filename = RESOURCES_PATH + 'playlist.pls'
         pls_string = '[playlist]\n'
         for idx, item in enumerate(self.playlist, start=1):
             pls_string += (f"File{idx}={item['resource'].split('/')[-1]}\n")
