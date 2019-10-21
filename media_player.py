@@ -15,15 +15,16 @@ from kombu import Connection, Exchange, Queue
 
 import status_client
 
-XOS_PLAYLIST_ENDPOINT = os.getenv('XOS_PLAYLIST_ENDPOINT')
-PLAYLIST_ID = os.getenv('PLAYLIST_ID', '1')
-MEDIA_PLAYER_ID = os.getenv('MEDIA_PLAYER_ID')
+XOS_API_ENDPOINT = os.getenv('XOS_API_ENDPOINT')
+XOS_PLAYLIST_ENDPOINT = f'{XOS_API_ENDPOINT}playlists/'
+XOS_PLAYLIST_ID = os.getenv('XOS_PLAYLIST_ID', '1')
+XOS_MEDIA_PLAYER_ID = os.getenv('XOS_MEDIA_PLAYER_ID', '1')
 DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
 VLC_URL = os.getenv('VLC_URL')
 VLC_PASSWORD = os.getenv('VLC_PASSWORD')
-TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS')
-USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST')
+TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS', '0.1')
+USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST', '0')
 DEVICE_NAME = os.getenv('BALENA_DEVICE_NAME_AT_INIT')
 DEVICE_UUID = os.getenv('BALENA_DEVICE_UUID')
 BALENA_APP_ID = os.getenv('BALENA_APP_ID')
@@ -38,8 +39,8 @@ VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 sentry_sdk.init(SENTRY_ID)
 
 PYTZ_TIMEZONE = pytz.timezone('Australia/Melbourne')
-QUEUE_NAME = f'mqtt-subscription-playback_{MEDIA_PLAYER_ID}'
-ROUTING_KEY = f'mediaplayer.{MEDIA_PLAYER_ID}'
+QUEUE_NAME = f'mqtt-subscription-playback_{XOS_MEDIA_PLAYER_ID}'
+ROUTING_KEY = f'mediaplayer.{XOS_MEDIA_PLAYER_ID}'
 
 # Playback messaging
 MEDIA_PLAYER_EXCHANGE = Exchange('amq.topic', 'direct', durable=True)
@@ -99,8 +100,8 @@ class MediaPlayer():
 
                 media_player_status = {
                     'datetime': self.datetime_now(),
-                    'playlist_id': int(PLAYLIST_ID),
-                    'media_player_id': int(MEDIA_PLAYER_ID),
+                    'playlist_id': int(XOS_PLAYLIST_ID),
+                    'media_player_id': int(XOS_MEDIA_PLAYER_ID),
                     'label_id': currently_playing_label_id,
                     'playlist_position': self.current_playlist_position,
                     'playback_position': vlc_status['position'],
@@ -337,7 +338,7 @@ class MediaPlayer():
         Downloads the playlist from XOS.
         """
         try:
-            response = requests.get(XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID)
+            response = requests.get(XOS_PLAYLIST_ENDPOINT + XOS_PLAYLIST_ID)
             response.raise_for_status()
             playlist_labels = response.json()['playlist_labels']
 
@@ -351,7 +352,7 @@ class MediaPlayer():
 
         except KeyError as exception:
             message = f'Is there a resource for this playlist? \
-                {XOS_PLAYLIST_ENDPOINT + PLAYLIST_ID}'
+                {XOS_PLAYLIST_ENDPOINT + XOS_PLAYLIST_ID}'
             print(message)
             sentry_sdk.capture_exception(exception)
 
