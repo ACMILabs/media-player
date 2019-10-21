@@ -59,11 +59,6 @@ RUN pip install -Ur /code/requirements/prod.txt
 COPY ./conf/xinitrc /etc/xdg/xfce4/
 COPY ./conf/xinitrc /root/.config/xfce4/
 
-RUN mkdir /data
-RUN mkdir /data/resources
-COPY ./resources/*.mp4 /data/resources/
-COPY ./resources/*.srt /data/resources/
-
 COPY . /code/
 WORKDIR /code/
 

@@ -185,6 +185,10 @@ class MediaPlayer():
         """
         Deletes unneeded resources from old playlists.
         """
+        # Make the resources directory if it doesn't exist
+        if not os.path.exists(RESOURCES_PATH):
+            os.makedirs(RESOURCES_PATH)
+
         resources_on_filesystem = []
         for item in os.listdir(RESOURCES_PATH):
             if os.path.isfile(os.path.join(RESOURCES_PATH, item)):
