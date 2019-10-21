@@ -47,7 +47,7 @@ MEDIA_PLAYER_EXCHANGE = Exchange('amq.topic', 'direct', durable=True)
 PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=ROUTING_KEY)
 
 # Save resources to a persistent storage location
-RESOURCES_PATH = '/data/'
+RESOURCES_PATH = '/data/resources/'
 
 
 class MediaPlayer():

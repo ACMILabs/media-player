@@ -43,6 +43,11 @@ COPY ./requirements/base.txt /code/requirements/base.txt
 COPY ./requirements/prod.txt /code/requirements/prod.txt
 RUN pip3 install -Ur /code/requirements/prod.txt
 
+RUN mkdir /data
+RUN mkdir /data/resources
+COPY ./resources/*.mp4 /data/resources/
+COPY ./resources/*.srt /data/resources/
+
 COPY . /code/
 WORKDIR /code/
 
