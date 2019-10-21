@@ -1,0 +1,111 @@
+{
+  "id": 9,
+  "title": "Moving Worlds",
+  "playlist_labels": [
+    {
+      "label": {
+        "id": 41,
+        "title": "Aquaman",
+        "description": "Once home to the most advanced civilization on Earth, Atlantis is now an underwater kingdom ruled by the power-hungry King Orm. With a vast army at his disposal, Orm plans to conquer the remaining oceanic people and then the surface world. Standing in his way is Arthur Curry, Orm's half-human, half-Atlantean brother and true heir to the throne.",
+        "publication": "Australia/United States of America, 2018",
+        "rights": "",
+        "works": [
+          {
+            "id": 60819,
+            "title": "Aquaman",
+            "image": "file://../../data/resources/sample.jpg",
+            "abstract": "",
+            "brief_description": "Once home to the most advanced civilization on Earth, Atlantis is now an underwater kingdom ruled by the power-hungry King Orm. With a vast army at his disposal, Orm plans to conquer the remaining oceanic people and then the surface world. Standing in his way is Arthur Curry, Orm's half-human, half-Atlantean brother and true heir to the throne.",
+            "first_production_year": "2018"
+          }
+        ]
+      },
+      "resource": "file://../../data/resources/sample-2.mp4",
+      "subtitles": "file://../../data/resources/sample-2.srt"
+    },
+    {
+      "label": {
+        "id": 42,
+        "title": "Blade Runner",
+        "description": "In the smog-choked dystopian Los Angeles of 2019, blade runner Rick Deckard is called out of retirement to terminate a quartet of replicants who have escaped to Earth seeking their creator for a way to extend their short life spans.",
+        "publication": "Hong Kong/United Kingdom/United States of America, 1982",
+        "rights": "",
+        "works": [
+          {
+            "id": 153,
+            "title": "Blade Runner",
+            "image": "file://../../data/resources/sample.jpg",
+            "abstract": "",
+            "brief_description": "In the smog-choked dystopian Los Angeles of 2019, blade runner Rick Deckard is called out of retirement to terminate a quartet of replicants who have escaped to Earth seeking their creator for a way to extend their short life spans.",
+            "first_production_year": "1982"
+          }
+        ]
+      },
+      "resource": "file://../../data/resources/sample-2.mp4",
+      "subtitles": null
+    },
+    {
+      "label": {
+        "id": 43,
+        "title": "Hollow Knight",
+        "description": "Hollow Knight is the first game by Team Cherry, an indie games team comprised of 3 people based in South Australia. \r\n \r\nHollow Knight is a challenging, beautiful action adventure game set in the vast, inter-connected underground kingdom of Hallownest. A 2D action game with an emphasis on skill and exploration, Hollow Knight has you fighting a fearsome host of deadly creatures, avoiding intricate traps and solving ancient mysteries as you make your own way through fungal wastes, forests of bone, and ruined underground cities. \r\n \r\nThe atmosphere is eerie and sometimes unnerving, but there is a good-hearted core of humour and levity in there too, especially when conversing with all of the weird and wonderful NPCs youâ€™ll find along the way. Hollow Knight has beautiful traditional art, fluid and responsive action, challenging but fair gameplay, and an incredible, bizarre insect world begging to be explored and conquered.",
+        "publication": "2017",
+        "rights": "",
+        "works": [
+          {
+            "id": 60864,
+            "title": "Hollow Knight",
+            "image": "file://../../data/resources/sample.jpg",
+            "abstract": "Hollow Knight is the first game by Team Cherry, an indie games team comprised of 3 people based in South Australia. \n \nHollow Knight is a challenging, beautiful action adventure game set in the vast, inter-connected underground kingdom of Hallownest. A 2D action game with an emphasis on skill and exploration, Hollow Knight has you fighting a fearsome host of deadly creatures, avoiding intricate traps and solving ancient mysteries as you make your own way through fungal wastes, forests of bone, and ruined underground cities. \n \nThe atmosphere is eerie and sometimes unnerving, but there is a good-hearted core of humour and levity in there too, especially when conversing with all of the weird and wonderful NPCs youâ€™ll find along the way. Hollow Knight has beautiful traditional art, fluid and responsive action, challenging but fair gameplay, and an incredible, bizarre insect world begging to be explored and conquered. \nFeatures \n \n - A beautiful, eerie world of insects and heroes. \n - Traditional 2D animation brings creatures and characters to life. \n - Challenging gameplay that can be difficult but always fair. \n - Fluid and responsive action allows you to flow through combat like water. \n - A collection of challenging â€œfeatsâ€ the most skilled players can strive for. \n - Find powerful new abilities and spells on your adventure to grow stronger and open new paths. \n - Speak with a weird, intriguing cast of characters. \n - Explore a vast, connected underground world. \n - Scour the world for hidden secrets â€“ powerful artifacts, piles of riches, and surprising encounters. \n - Go Dream Diving! Venture into the minds of friends and enemies and discover the strange worlds that await within. \n - Head to town to seek advice, purchase new items, and chat with quirky townsfolk. \n - Hidden areas full of the toughest challenges and battles, for expert players. \n - Ancient mysteries hidden about the world waiting to be solved by the most observant investigators.",
+            "brief_description": "",
+            "first_production_year": "2017"
+          }
+        ]
+      },
+      "resource": "file://../../data/resources/sample-2.mp4",
+      "subtitles": null
+    },
+    {
+      "label": {
+        "id": 40,
+        "title": "Isle of Dogs",
+        "description": "In the future, an outbreak of canine flu leads the mayor of a Japanese city to banish all dogs to an island that's a garbage dump. The outcasts must soon embark on an epic journey when a 12-year-old boy arrives on the island to find his beloved pet.",
+        "publication": "Germany/United States of America, 2018",
+        "rights": "",
+        "works": [
+          {
+            "id": 60818,
+            "title": "Isle of Dogs",
+            "image": "file://../../data/resources/sample.jpg",
+            "abstract": "",
+            "brief_description": "In the future, an outbreak of canine flu leads the mayor of a Japanese city to banish all dogs to an island that's a garbage dump. The outcasts must soon embark on an epic journey when a 12-year-old boy arrives on the island to find his beloved pet.",
+            "first_production_year": "2018"
+          }
+        ]
+      },
+      "resource": "file://../../data/resources/sample-2.mp4",
+      "subtitles": null
+    },
+    {
+      "label": {
+        "id": 38,
+        "title": "The Favourite",
+        "description": "England, early 18th century. The close relationship between Queen Anne and Sarah Churchill is threatened by the arrival of Sarah's cousin, Abigail Hill, resulting in a bitter rivalry between the two cousins to be the Queen's favourite.",
+        "publication": "Ireland/United Kingdom/United States of America, 2018",
+        "rights": "",
+        "works": [
+          {
+            "id": 136,
+            "title": "The Favourite",
+            "image": "file://../../data/resources/sample.jpg",
+            "abstract": "",
+            "brief_description": "England, early 18th century. The close relationship between Queen Anne and Sarah Churchill is threatened by the arrival of Sarah's cousin, Abigail Hill, resulting in a bitter rivalry between the two cousins to be the Queen's favourite.",
+            "first_production_year": "2018"
+          }
+        ]
+      },
+      "resource": "file://../../data/resources/sample-2.mp4",
+      "subtitles": null
+    }
+  ]
+}

@@ -6,6 +6,8 @@ resources/*
 !resources/blank-1920x1080.png
 !resources/sample.mp4
 !resources/sample.srt
+!resources/sample-2.mp4
+!resources/sample-2.srt
 .DS_Store
 .venv
 .vscode

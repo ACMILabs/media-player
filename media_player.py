@@ -47,7 +47,7 @@ MEDIA_PLAYER_EXCHANGE = Exchange('amq.topic', 'direct', durable=True)
 PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=ROUTING_KEY)
 
 # Save resources to a persistent storage location
-RESOURCES_PATH = '/data/'
+RESOURCES_PATH = '/data/resources/'
 
 
 class MediaPlayer():
@@ -179,6 +179,42 @@ class MediaPlayer():
             message = f'Failed to restart the Media Player container with exception: {exception}'
             print(message)
             sentry_sdk.capture_exception(exception)
+
+    @staticmethod
+    def delete_unneeded_resources(playlist):
+        """
+        Deletes unneeded resources from old playlists.
+        """
+        # Make the resources directory if it doesn't exist
+        if not os.path.exists(RESOURCES_PATH):
+            os.makedirs(RESOURCES_PATH)
+
+        resources_on_filesystem = []
+        for item in os.listdir(RESOURCES_PATH):
+            if os.path.isfile(os.path.join(RESOURCES_PATH, item)):
+                resources_on_filesystem.append(item)
+
+        resources_from_playlist = []
+        for item in playlist:
+            try:
+                resource = urlparse(item.get('resource')).path.split('/')[-1]
+            except TypeError:
+                resource = None
+            if resource:
+                resources_from_playlist.append(resource)
+            try:
+                subtitles = urlparse(item.get('subtitles')).path.split('/')[-1]
+            except TypeError:
+                subtitles = None
+            if subtitles:
+                resources_from_playlist.append(subtitles)
+
+        unneeded_files = list(set(resources_on_filesystem) - set(resources_from_playlist))
+        for item in unneeded_files:
+            file_to_delete = os.path.join(RESOURCES_PATH, item)
+            print(f'Deleting unneeded media file: {file_to_delete}')
+            os.remove(file_to_delete)
+        return unneeded_files
 
     @staticmethod
     def resource_needs_downloading(resource_path):
@@ -341,6 +377,9 @@ class MediaPlayer():
             response = requests.get(XOS_PLAYLIST_ENDPOINT + XOS_PLAYLIST_ID)
             response.raise_for_status()
             playlist_labels = response.json()['playlist_labels']
+
+            # Delete unneeded files from the filesystem
+            self.delete_unneeded_resources(playlist_labels)
 
             # Download resources if they aren't available locally
             for item in playlist_labels:
