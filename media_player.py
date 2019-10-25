@@ -1,8 +1,6 @@
 import os
-import subprocess
 import time
 from datetime import datetime
-from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse
 
@@ -21,10 +19,7 @@ XOS_PLAYLIST_ID = os.getenv('XOS_PLAYLIST_ID', '1')
 XOS_MEDIA_PLAYER_ID = os.getenv('XOS_MEDIA_PLAYER_ID', '1')
 DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
-VLC_URL = os.getenv('VLC_URL')
-VLC_PASSWORD = os.getenv('VLC_PASSWORD')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS', '0.1')
-USE_PLS_PLAYLIST = os.getenv('USE_PLS_PLAYLIST', '0')
 DEVICE_NAME = os.getenv('BALENA_DEVICE_NAME_AT_INIT')
 DEVICE_UUID = os.getenv('BALENA_DEVICE_UUID')
 BALENA_APP_ID = os.getenv('BALENA_APP_ID')
@@ -57,10 +52,35 @@ class MediaPlayer():
     """
 
     def __init__(self):
-        self.vlc_player = None
         self.playlist = []
-        self.current_playlist_position = 0
-        self.vlc_connection_attempts = 0
+        self.vlc = {
+            'instance': None,
+            'player': None,
+            'list_player': None,
+            'playlist': None,
+        }
+        self.init_vlc()
+
+    def init_vlc(self):
+        """
+        Initialise the VLC variables:
+            - The VLC instance
+            - A MediaListPlayer for playing playlists
+            - A MediaPlayer for controlling playback
+            - A MediaList to load in the MediaListPlayer
+        Documentation for these can be found here:
+            http://www.olivieraubert.net/vlc/python-ctypes/doc/
+        """
+        flags = ['--quiet']
+        if SUBTITLES == 'false':
+            flags.append('--no-sub-autodetect-file')
+        self.vlc['instance'] = vlc.Instance(flags)
+        self.vlc['list_player'] = self.vlc['instance'].media_list_player_new()
+        self.vlc['player'] = self.vlc['list_player'].get_media_player()
+        self.vlc['playlist'] = self.vlc['instance'].media_list_new()
+
+        self.vlc['player'].set_fullscreen(True)
+        self.vlc['list_player'].set_playback_mode(vlc.PlaybackMode.loop)
 
     @staticmethod
     def datetime_now():
@@ -75,42 +95,36 @@ class MediaPlayer():
         Sends current playback and player information to media broker and Prometheus
         exporter.
         """
+        playlist_position = -1
+        vlc_connection_attempts = 0
         while True:
             try:
-                # Get playback status from VLC
-                session = requests.Session()
-                session.auth = ('', VLC_PASSWORD)
-                response = session.get(VLC_URL + 'requests/status.json')
-                response.raise_for_status()
-                vlc_status = response.json()
 
-                # Match playback filename with label id in self.playlist
-                currently_playing_label_id = None
-                currently_playing_resource = os.path.basename(
-                    urlparse(vlc_status['information']['category']['meta']['filename']).path
-                )
-                for idx, item in enumerate(self.playlist):
-                    item_filename = os.path.basename(urlparse(item['resource']).path)
-                    if item_filename == currently_playing_resource:
-                        currently_playing_label_id = int(item['label']['id'])
-                        if not self.current_playlist_position == idx:
-                            self.current_playlist_position = idx
-                            print(f'Playing video {self.current_playlist_position}: '
-                                  f'{self.generate_playlist()[self.current_playlist_position]}')
+                media = self.vlc['player'].get_media()
+                if not media:
+                    # playlist is empty
+                    print('No playable items in playlist')
+                    break
+                if self.vlc['playlist'].index_of_item(media) != playlist_position:
+                    playlist_position = self.vlc['playlist'].index_of_item(media)
+                    print(f'Playing video {playlist_position}: '
+                          f'{self.playlist[playlist_position]["resource"]}')
 
+                stats = vlc.MediaStats()
+                media.get_stats(stats)
                 media_player_status = {
                     'datetime': self.datetime_now(),
                     'playlist_id': int(XOS_PLAYLIST_ID),
                     'media_player_id': int(XOS_MEDIA_PLAYER_ID),
-                    'label_id': currently_playing_label_id,
-                    'playlist_position': self.current_playlist_position,
-                    'playback_position': vlc_status['position'],
-                    'dropped_audio_frames': vlc_status['stats']['lostabuffers'],
-                    'dropped_video_frames': vlc_status['stats']['lostpictures'],
-                    'duration': vlc_status['length'],
+                    'label_id': self.playlist[playlist_position]['label']['id'],
+                    'playlist_position': playlist_position,
+                    'playback_position': self.vlc['player'].get_position(),
+                    'dropped_audio_frames': stats.lost_abuffers,
+                    'dropped_video_frames': stats.lost_pictures,
+                    'duration': self.vlc['player'].get_length(),
                     'player_volume': \
                     # Player value 0-256
-                    str(vlc_status['volume'] / 256 * 10),
+                    str(self.vlc['player'].audio_get_volume() / 256 * 10),
                     'system_volume': \
                     # System value 0-100
                     str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
@@ -119,7 +133,9 @@ class MediaPlayer():
                 status_client.set_status(
                     DEVICE_UUID,
                     DEVICE_NAME,
-                    str(currently_playing_resource),
+                    str(os.path.basename(
+                        urlparse(self.playlist[playlist_position]['resource']).path
+                    )),
                     media_player_status,
                 )
 
@@ -131,28 +147,16 @@ class MediaPlayer():
                                      routing_key=ROUTING_KEY,
                                      declare=[PLAYBACK_QUEUE])
 
-            except (
-                    requests.exceptions.HTTPError,
-                    requests.exceptions.ConnectionError,
-            ) as exception:
-                self.vlc_connection_attempts += 1
-                if self.vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
-                    template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
-                    message = template.format(type(exception).__name__, exception.args)
-                    print(message)
-                    print(f'Can\'t connect to VLC player. Attempt {self.vlc_connection_attempts}')
-                    sentry_sdk.capture_exception(exception)
-
-            except (KeyError) as error:
-                self.vlc_connection_attempts += 1
-                if self.vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
+            except KeyError as error:
+                vlc_connection_attempts += 1
+                if vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
                     template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                     message = template.format(type(error).__name__, error.args)
                     print(message)
-                    print(f'Current vlc_status: {vlc_status}')
+                    print(f'Current vlc_status: {media_player_status}')
                     sentry_sdk.capture_exception(error)
 
-            except (TimeoutError) as error:
+            except TimeoutError as error:
                 template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                 message = template.format(type(error).__name__, error.args)
                 print(message)
@@ -263,7 +267,8 @@ class MediaPlayer():
             if subtitles_url and os.path.isfile(local_subtitles_path):
                 item_dictionary['subtitles'] = local_subtitles_path
 
-            self.playlist.append(item_dictionary)
+            return item_dictionary
+        return None
 
     @staticmethod
     def download_file(url):
@@ -296,81 +301,6 @@ class MediaPlayer():
         message = f'Tried to download {url} {DOWNLOAD_RETRIES} times, giving up.'
         print(message)
 
-    def generate_pls_playlist(self):
-        """
-        Generates a playlist.pls file and returns the filename.
-        """
-        pls_filename = RESOURCES_PATH + 'playlist.pls'
-        pls_string = '[playlist]\n'
-        for idx, item in enumerate(self.playlist, start=1):
-            pls_string += (f"File{idx}={item['resource'].split('/')[-1]}\n")
-        pls_string += f'NumberOfEntries={len(self.playlist)}\nVersion=2'
-        with open(pls_filename, 'w') as open_file:
-            open_file.write(pls_string)
-        if Path(pls_filename).exists():
-            return pls_filename
-
-        return None
-
-    def generate_playlist(self):
-        """
-        Generates a list of files to hand into the VLC call.
-        """
-        playlist = []
-        for item in self.playlist:
-            playlist.append(item['resource'])
-        return playlist
-
-    def start_vlc(self):
-        """
-        Starts VLC.
-        """
-        try:
-            playlist = self.generate_playlist()
-
-            print(f'Playing video {self.current_playlist_position}: '
-                  f'{playlist[self.current_playlist_position]}')
-            vlc_display_command = [
-                'vlc',
-                '-I',
-                'dummy',
-                '--x11-display',
-                ':0',
-                '--quiet',
-                '--loop',
-                '--fullscreen',
-                '--no-random',
-                '--no-video-title-show',
-                '--video-on-top',
-                '--no-osd',
-                '--extraintf',
-                'http',
-                '--http-password',
-                VLC_PASSWORD,
-            ]
-            if int(USE_PLS_PLAYLIST) == 1:
-                playlist = [self.generate_pls_playlist()]
-
-            if SUBTITLES == 'false':
-                vlc_display_command.extend([
-                    '--no-sub-autodetect-file',
-                ])
-
-            subprocess.check_output(vlc_display_command + playlist)
-
-        except subprocess.CalledProcessError as exception:
-            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
-            message = template.format(type(exception).__name__, exception.args)
-            print(message)
-            sentry_sdk.capture_exception(exception)
-
-        except IndexError as exception:
-            template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
-            message = template.format(type(exception).__name__, exception.args)
-            print(message)
-            print(f'Playlist seems to be empty: {playlist}')
-            sentry_sdk.capture_exception(exception)
-
     def download_playlist_from_xos(self):
         """
         Downloads the playlist from XOS.
@@ -384,8 +314,22 @@ class MediaPlayer():
             self.delete_unneeded_resources(playlist_labels)
 
             # Download resources if they aren't available locally
-            for item in playlist_labels:
-                self.download_resources(item)
+            for playlist_label in playlist_labels:
+                local_playlist_label = self.download_resources(playlist_label)
+                if not local_playlist_label:
+                    print(f'Invalid video resource: {playlist_label["resource"]}, skipping.')
+                    continue
+                local_resource = local_playlist_label['resource']
+                media = self.vlc['instance'].media_new(local_resource)
+                media.parse()
+                if media.get_duration():
+                    # OK to play
+                    self.vlc['playlist'].add_media(media)
+                    self.playlist.append(local_playlist_label)
+                else:
+                    print(f'Video doesn\'t seem playable: {local_resource}, skipping.')
+
+            self.vlc['list_player'].set_media_list(self.vlc['playlist'])
 
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as exception:
             print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {exception}')
@@ -400,26 +344,10 @@ class MediaPlayer():
 
 if __name__ == "__main__":
     # pylint: disable=invalid-name
-    # Download playlist JSON from XOS
+
     media_player = MediaPlayer()
     media_player.download_playlist_from_xos()
-
-    # Check if vlc can play the media in self.playlist
-    for playlist_item in media_player.playlist:
-        video_resource = playlist_item['resource']
-        media_player.vlc_player = vlc.MediaPlayer(video_resource)
-        media = media_player.vlc_player.get_media()
-        media.parse()
-        if media.get_duration():
-            # OK to play
-            pass
-        else:
-            print(f'Video doesn\'t seem playable: \
-                {video_resource}, removing from the playlist.')
-            media_player.playlist.remove(playlist_item)
-
-    vlc_thread = Thread(target=media_player.start_vlc)
-    vlc_thread.start()
+    media_player.vlc['list_player'].play()
 
     # Wait for VLC to launch
     time.sleep(5)

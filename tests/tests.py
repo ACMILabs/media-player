@@ -51,10 +51,9 @@ def test_media_player():
     """
 
     media_player = MediaPlayer()
-    assert not media_player.vlc_player
     assert media_player.playlist == []
-    assert media_player.current_playlist_position == 0
-    assert media_player.vlc_connection_attempts == 0
+    assert len(media_player.vlc) == 4
+    assert all([vlc_var is not None for vlc_var in media_player.vlc.values()])
 
 
 @patch('requests.get', side_effect=mocked_requests_get)
@@ -73,26 +72,6 @@ def test_download_playlist_from_xos(mock_get):
 
 
 @patch('requests.get', side_effect=mocked_requests_get)
-def test_generate_pls_playlist(mock_get):
-    """
-    Test generate_pls_playlist() returns the expected format.
-    """
-
-    media_player = MediaPlayer()
-    media_player.download_playlist_from_xos()
-    playlist = media_player.playlist
-    pls_playlist = open(media_player.generate_pls_playlist()).read()
-
-    assert len(playlist) == 3
-    assert '[playlist]' in pls_playlist
-    assert 'File1=sample.mp4' in pls_playlist
-    assert 'File2=sample.mp4' in pls_playlist
-    assert 'File3=sample.mp4' in pls_playlist
-    assert 'NumberOfEntries=3' in pls_playlist
-    assert 'Version=2' in pls_playlist
-
-
-@patch('requests.get', side_effect=mocked_requests_get)
 def test_delete_unneeded_resources(mock_get):
     """
     Test delete_unneeded_resources() deletes the expected files.
@@ -102,8 +81,7 @@ def test_delete_unneeded_resources(mock_get):
     playlist = json.loads(file_to_string_strip_new_lines('data/playlist.json'))['playlist_labels']
     files_deleted = media_player.delete_unneeded_resources(playlist)
 
-    assert len(files_deleted) == 1
-    assert 'playlist.pls' in files_deleted
+    assert len(files_deleted) == 0
 
     playlist_2 = json.loads(file_to_string_strip_new_lines('data/playlist-2.json'))['playlist_labels']
     files_deleted_2 = media_player.delete_unneeded_resources(playlist_2)
