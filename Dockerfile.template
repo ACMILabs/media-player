@@ -8,7 +8,7 @@ RUN install_packages \
   vlc \
   vlc-plugin-* \
   g++ \
-  xserver-xorg \
+  xserver-xorg-video-intel \
   xserver-xorg-input-evdev \
   xinit \
   xfce4 \
