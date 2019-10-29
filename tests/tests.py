@@ -1,6 +1,6 @@
 import json
 import os
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from media_player import MediaPlayer
 
@@ -71,8 +71,9 @@ def test_download_playlist_from_xos(mock_get):
     assert playlist[0]['subtitles'] == '/data/resources/sample.srt'
 
 
+@patch('os.remove')
 @patch('requests.get', side_effect=mocked_requests_get)
-def test_delete_unneeded_resources(mock_get):
+def test_delete_unneeded_resources(mock_get, os_remove):
     """
     Test delete_unneeded_resources() deletes the expected files.
     """
@@ -89,3 +90,37 @@ def test_delete_unneeded_resources(mock_get):
     assert len(files_deleted_2) == 2
     assert 'sample.mp4' in files_deleted_2
     assert 'sample.srt' in files_deleted_2
+
+
+@patch('alsaaudio.Mixer')
+@patch('alsaaudio.mixers')
+def test_get_media_player_status(mixer, mixers):
+    """
+    Test get_media_player_status correctly outputs playback data.
+    """
+    media_player = MediaPlayer()
+    media_player.playlist = [
+        {
+            'label': {
+                'id': 123
+            }
+        },
+        {
+            'label': {
+                'id': 456
+            }
+        },
+    ]
+
+    mock_vlc_player = MagicMock()
+    mock_vlc_player.get_media = MagicMock(return_value=MagicMock())
+    media_player.vlc['player'] = mock_vlc_player
+
+    mock_vlc_playlist = MagicMock()
+    mock_vlc_playlist.index_of_item = MagicMock(return_value=1)
+    media_player.vlc['playlist'] = mock_vlc_playlist
+
+    status = media_player.get_media_player_status()
+    assert 'datetime' in status.keys()
+    assert status['playlist_position'] == 1
+    assert status['label_id'] == 456

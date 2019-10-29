@@ -90,6 +90,35 @@ class MediaPlayer():
         """
         return datetime.now(PYTZ_TIMEZONE).isoformat()
 
+    def get_media_player_status(self):
+        """
+        Compile the media player status into a dictionary.
+        """
+        media = self.vlc['player'].get_media()
+        if not media:
+            # playlist is empty
+            raise ValueError('No playable items in playlist')
+        stats = vlc.MediaStats()
+        media.get_stats(stats)
+        playlist_position = self.vlc['playlist'].index_of_item(media)
+        return {
+            'datetime': self.datetime_now(),
+            'playlist_id': int(XOS_PLAYLIST_ID),
+            'media_player_id': int(XOS_MEDIA_PLAYER_ID),
+            'label_id': self.playlist[playlist_position]['label']['id'],
+            'playlist_position': playlist_position,
+            'playback_position': self.vlc['player'].get_position(),
+            'dropped_audio_frames': stats.lost_abuffers,
+            'dropped_video_frames': stats.lost_pictures,
+            'duration': self.vlc['player'].get_length(),
+            'player_volume': \
+            # Player value 0-256
+            str(self.vlc['player'].audio_get_volume() / 256 * 10),
+            'system_volume': \
+            # System value 0-100
+            str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
+        }
+
     def post_playback_to_broker(self):  # pylint: disable=R0914
         """
         Sends current playback and player information to media broker and Prometheus
@@ -99,36 +128,12 @@ class MediaPlayer():
         vlc_connection_attempts = 0
         while True:
             try:
+                media_player_status = self.get_media_player_status()
 
-                media = self.vlc['player'].get_media()
-                if not media:
-                    # playlist is empty
-                    print('No playable items in playlist')
-                    break
-                if self.vlc['playlist'].index_of_item(media) != playlist_position:
-                    playlist_position = self.vlc['playlist'].index_of_item(media)
+                if media_player_status['playlist_position'] != playlist_position:
+                    playlist_position = media_player_status['playlist_position']
                     print(f'Playing video {playlist_position}: '
                           f'{self.playlist[playlist_position]["resource"]}')
-
-                stats = vlc.MediaStats()
-                media.get_stats(stats)
-                media_player_status = {
-                    'datetime': self.datetime_now(),
-                    'playlist_id': int(XOS_PLAYLIST_ID),
-                    'media_player_id': int(XOS_MEDIA_PLAYER_ID),
-                    'label_id': self.playlist[playlist_position]['label']['id'],
-                    'playlist_position': playlist_position,
-                    'playback_position': self.vlc['player'].get_position(),
-                    'dropped_audio_frames': stats.lost_abuffers,
-                    'dropped_video_frames': stats.lost_pictures,
-                    'duration': self.vlc['player'].get_length(),
-                    'player_volume': \
-                    # Player value 0-256
-                    str(self.vlc['player'].audio_get_volume() / 256 * 10),
-                    'system_volume': \
-                    # System value 0-100
-                    str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
-                }
 
                 status_client.set_status(
                     DEVICE_UUID,
@@ -156,7 +161,7 @@ class MediaPlayer():
                     print(f'Current vlc_status: {media_player_status}')
                     sentry_sdk.capture_exception(error)
 
-            except TimeoutError as error:
+            except (TimeoutError, ValueError) as error:
                 template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
                 message = template.format(type(error).__name__, error.args)
                 print(message)
@@ -320,6 +325,7 @@ class MediaPlayer():
                     print(f'Invalid video resource: {playlist_label["resource"]}, skipping.')
                     continue
                 local_resource = local_playlist_label['resource']
+                print(local_resource)
                 media = self.vlc['instance'].media_new(local_resource)
                 media.parse()
                 if media.get_duration():
