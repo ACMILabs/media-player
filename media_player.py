@@ -325,7 +325,6 @@ class MediaPlayer():
                     print(f'Invalid video resource: {playlist_label["resource"]}, skipping.')
                     continue
                 local_resource = local_playlist_label['resource']
-                print(local_resource)
                 media = self.vlc['instance'].media_new(local_resource)
                 media.parse()
                 if media.get_duration():
