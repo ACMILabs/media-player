@@ -101,11 +101,16 @@ class MediaPlayer():
         stats = vlc.MediaStats()
         media.get_stats(stats)
         playlist_position = self.vlc['playlist'].index_of_item(media)
+        try:
+            label_id = self.playlist[playlist_position]['label']['id']
+        except TypeError:
+            # No label ID for this playlist item
+            label_id = None
         return {
             'datetime': self.datetime_now(),
             'playlist_id': int(XOS_PLAYLIST_ID),
             'media_player_id': int(XOS_MEDIA_PLAYER_ID),
-            'label_id': self.playlist[playlist_position]['label']['id'],
+            'label_id': label_id,
             'playlist_position': playlist_position,
             'playback_position': self.vlc['player'].get_position(),
             'dropped_audio_frames': stats.lost_abuffers,
