@@ -110,6 +110,9 @@ def test_get_media_player_status(mixer, mixers):
                 'id': 456
             }
         },
+        {
+            'label': None
+        },
     ]
 
     mock_vlc_player = MagicMock()
@@ -119,8 +122,13 @@ def test_get_media_player_status(mixer, mixers):
     mock_vlc_playlist = MagicMock()
     mock_vlc_playlist.index_of_item = MagicMock(return_value=1)
     media_player.vlc['playlist'] = mock_vlc_playlist
-
     status = media_player.get_media_player_status()
+
+    mock_vlc_playlist.index_of_item = MagicMock(return_value=2)
+    media_player.vlc['playlist'] = mock_vlc_playlist
+    status_two = media_player.get_media_player_status()
+
     assert 'datetime' in status.keys()
     assert status['playlist_position'] == 1
     assert status['label_id'] == 456
+    assert status_two['label_id'] is None
