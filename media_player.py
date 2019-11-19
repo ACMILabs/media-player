@@ -1,3 +1,4 @@
+import re
 import os
 import time
 from datetime import datetime
@@ -8,6 +9,7 @@ import alsaaudio
 import pytz
 import requests
 import sentry_sdk
+import subprocess
 import vlc
 from kombu import Connection, Exchange, Queue
 
@@ -17,6 +19,7 @@ XOS_API_ENDPOINT = os.getenv('XOS_API_ENDPOINT')
 XOS_PLAYLIST_ENDPOINT = f'{XOS_API_ENDPOINT}playlists/'
 XOS_PLAYLIST_ID = os.getenv('XOS_PLAYLIST_ID', '1')
 XOS_MEDIA_PLAYER_ID = os.getenv('XOS_MEDIA_PLAYER_ID', '1')
+AUDIO_DEVICE_REGEX = re.compile(os.getenv('AUDIO_DEVICE_REGEX', ''))
 DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS', '0.1')
@@ -44,6 +47,8 @@ PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=R
 # Save resources to a persistent storage location
 RESOURCES_PATH = '/data/resources/'
 
+# Parse the output of `aplay -l`
+APLAY_REGEX = re.compile(r'card (\d+): (.+), device (\d+): (.+)')
 
 class MediaPlayer():
     """
@@ -71,7 +76,7 @@ class MediaPlayer():
         Documentation for these can be found here:
             http://www.olivieraubert.net/vlc/python-ctypes/doc/
         """
-        flags = ['--quiet']
+        flags = ['--quiet'] + self.get_audio_flags()
         if SUBTITLES == 'false':
             flags.append('--no-sub-autodetect-file')
         self.vlc['instance'] = vlc.Instance(flags)
@@ -89,6 +94,28 @@ class MediaPlayer():
         timezone setting in an ISO 8601 format.
         """
         return datetime.now(PYTZ_TIMEZONE).isoformat()
+    
+    def get_audio_flags(self):
+        if not AUDIO_DEVICE_REGEX:
+            print('No AUDIO_DEVICE_REGEX setting provided. Using default audio settings.')
+            return []
+
+        audio_devices = subprocess.check_output(['aplay', '-l']).decode('utf-8').splitlines()
+        print('Scanning audio devices:')
+        for device in audio_devices:
+            groups = APLAY_REGEX.match(device)
+            if groups:
+                print(f'{device} ...', end='')
+                if AUDIO_DEVICE_REGEX.match(device, flags=re.IGNORECASE):
+                    print('MATCH')
+                    return ['--aout=alsa', f'--alsa-audio-device="hw:{groups[0]},{groups[2]}"']
+                print('')
+        print(
+            f'AUDIO_DEVICE_REGEX {APLAY_REGEX.pattern} did not match any audio devices. '
+            'Using default audio settings instead.'
+        )
+        return []
+
 
     def get_media_player_status(self):
         """
