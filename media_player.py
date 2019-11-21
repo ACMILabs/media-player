@@ -98,11 +98,24 @@ class MediaPlayer():
         return datetime.now(PYTZ_TIMEZONE).isoformat()
 
     def get_audio_flags(self):
+        """
+        Examine the AUDIO_DEVICE_REGEX value and, if given and not 'mute', compare with the output from `aplay -l`
+        to determine the audio device to use, and return the flags to tell VLC to use that output. If we can't 
+        find a match, use the default VLC settings.
+
+        Useful values, that should work on Raspberry Pi|Dell:
+
+        dante|USB Audio # a USB Dante device
+        hdmi|hdmi 0 # the first hdmi device
+        hdmi1|hdmi 1 # the second hdmi device
+
+        If the value is "mute" or "no-audio" the `--no-audio` flag is used with VLC.
+        """
         if not AUDIO_DEVICE_REGEX.pattern:
             print('No AUDIO_DEVICE_REGEX setting provided. Using default audio settings.')
             return []
 
-        if AUDIO_DEVICE_REGEX.pattern.lower() == "mute":
+        if AUDIO_DEVICE_REGEX.pattern.lower() in ("mute", "no-audio"):
             print("Disabling Audio")
             return ['--no-audio']
 
