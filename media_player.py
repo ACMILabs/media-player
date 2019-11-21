@@ -102,6 +102,10 @@ class MediaPlayer():
             print('No AUDIO_DEVICE_REGEX setting provided. Using default audio settings.')
             return []
 
+        if AUDIO_DEVICE_REGEX.pattern.lower() == "mute":
+            print("Disabling Audio")
+            return ['--no-audio']
+
         audio_devices = subprocess.check_output(['aplay', '-l']).decode('utf-8').splitlines()
         print(f'Scanning audio devices for match to {AUDIO_DEVICE_REGEX.pattern}')
         for device in audio_devices:
