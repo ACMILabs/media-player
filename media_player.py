@@ -50,7 +50,7 @@ PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=R
 RESOURCES_PATH = '/data/resources/'
 
 # Parse the output of `aplay -l`
-APLAY_REGEX = re.compile(r'card (\d+): (.+), device (\d+): (.+)')
+APLAY_REGEX = re.compile(r'card (?P<card_id>\d+): (.+), device (?P<device_id>\d+): (.+)')
 
 class MediaPlayer():
     """
@@ -105,12 +105,12 @@ class MediaPlayer():
         audio_devices = subprocess.check_output(['aplay', '-l']).decode('utf-8').splitlines()
         print(f'Scanning audio devices for match to {AUDIO_DEVICE_REGEX.pattern}')
         for device in audio_devices:
-            groups = APLAY_REGEX.match(device)
-            if groups: # this line describes a device (not a subdevice)
+            match = APLAY_REGEX.match(device)
+            if match: # this line describes a device (not a subdevice)
                 print(f'{device} ... ', end='')
                 if AUDIO_DEVICE_REGEX.search(device):
                     print('Y')
-                    return ['--aout=alsa', f'--alsa-audio-device="hw:{groups[0]},{groups[2]}"']
+                    return ['--aout=alsa', f'--alsa-audio-device=hw:{match.group("card_id")},{match.group("device_id")}']
                 print('n')
         print(
             f'AUDIO_DEVICE_REGEX {AUDIO_DEVICE_REGEX.pattern} did not match any audio devices. '
