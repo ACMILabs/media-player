@@ -1,6 +1,8 @@
-import re
 import os
+import re
+import subprocess
 import time
+
 from datetime import datetime
 from threading import Thread
 from urllib.parse import urlparse
@@ -9,8 +11,8 @@ import alsaaudio
 import pytz
 import requests
 import sentry_sdk
-import subprocess
 import vlc
+
 from kombu import Connection, Exchange, Queue
 
 import status_client
@@ -19,7 +21,7 @@ XOS_API_ENDPOINT = os.getenv('XOS_API_ENDPOINT')
 XOS_PLAYLIST_ENDPOINT = f'{XOS_API_ENDPOINT}playlists/'
 XOS_PLAYLIST_ID = os.getenv('XOS_PLAYLIST_ID', '1')
 XOS_MEDIA_PLAYER_ID = os.getenv('XOS_MEDIA_PLAYER_ID', '1')
-AUDIO_DEVICE_REGEX = re.compile(os.getenv('AUDIO_DEVICE_REGEX', ''))
+AUDIO_DEVICE_REGEX = re.compile(os.getenv('AUDIO_DEVICE_REGEX', ''), flags=re.IGNORECASE)
 DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS', '0.1')
@@ -94,24 +96,24 @@ class MediaPlayer():
         timezone setting in an ISO 8601 format.
         """
         return datetime.now(PYTZ_TIMEZONE).isoformat()
-    
+
     def get_audio_flags(self):
-        if not AUDIO_DEVICE_REGEX:
+        if not AUDIO_DEVICE_REGEX.pattern:
             print('No AUDIO_DEVICE_REGEX setting provided. Using default audio settings.')
             return []
 
         audio_devices = subprocess.check_output(['aplay', '-l']).decode('utf-8').splitlines()
-        print('Scanning audio devices:')
+        print(f'Scanning audio devices for match to {AUDIO_DEVICE_REGEX.pattern}')
         for device in audio_devices:
             groups = APLAY_REGEX.match(device)
-            if groups:
-                print(f'{device} ...', end='')
-                if AUDIO_DEVICE_REGEX.match(device, flags=re.IGNORECASE):
-                    print('MATCH')
+            if groups: # this line describes a device (not a subdevice)
+                print(f'{device} ... ', end='')
+                if AUDIO_DEVICE_REGEX.search(device):
+                    print('Y')
                     return ['--aout=alsa', f'--alsa-audio-device="hw:{groups[0]},{groups[2]}"']
-                print('')
+                print('n')
         print(
-            f'AUDIO_DEVICE_REGEX {APLAY_REGEX.pattern} did not match any audio devices. '
+            f'AUDIO_DEVICE_REGEX {AUDIO_DEVICE_REGEX.pattern} did not match any audio devices. '
             'Using default audio settings instead.'
         )
         return []
