@@ -2,7 +2,6 @@ import os
 import re
 import subprocess
 import time
-
 from datetime import datetime
 from threading import Thread
 from urllib.parse import urlparse
@@ -12,7 +11,6 @@ import pytz
 import requests
 import sentry_sdk
 import vlc
-
 from kombu import Connection, Exchange, Queue
 
 import status_client
@@ -52,6 +50,7 @@ RESOURCES_PATH = '/data/resources/'
 # Parse the output of `aplay -l`
 APLAY_REGEX = re.compile(r'card (?P<card_id>\d+): (.+), device (?P<device_id>\d+): (.+)')
 
+
 class MediaPlayer():
     """
     A media player that communicates with XOS to download resources
@@ -78,7 +77,7 @@ class MediaPlayer():
         Documentation for these can be found here:
             http://www.olivieraubert.net/vlc/python-ctypes/doc/
         """
-        flags = ['--quiet'] + self.get_audio_flags()
+        flags = ['--quiet'] + MediaPlayer.get_audio_flags()
         if SUBTITLES == 'false':
             flags.append('--no-sub-autodetect-file')
         self.vlc['instance'] = vlc.Instance(flags)
@@ -97,11 +96,12 @@ class MediaPlayer():
         """
         return datetime.now(PYTZ_TIMEZONE).isoformat()
 
-    def get_audio_flags(self):
+    @staticmethod
+    def get_audio_flags():
         """
-        Examine the AUDIO_DEVICE_REGEX value and, if given and not 'mute', compare with the output from `aplay -l`
-        to determine the audio device to use, and return the flags to tell VLC to use that output. If we can't 
-        find a match, use the default VLC settings.
+        Examine the AUDIO_DEVICE_REGEX value and, if given and not 'mute', compare with the
+        output from `aplay -l` to determine the audio device to use, and return the flags to
+        tell VLC to use that output. If we can't find a match, use the default VLC settings.
 
         Useful values, that should work on Raspberry Pi|Dell:
 
@@ -122,19 +122,21 @@ class MediaPlayer():
         audio_devices = subprocess.check_output(['aplay', '-l']).decode('utf-8').splitlines()
         print(f'Scanning audio devices for match to {AUDIO_DEVICE_REGEX.pattern}')
         for device in audio_devices:
-            match = APLAY_REGEX.match(device)
-            if match: # this line describes a device (not a subdevice)
+            mtch = APLAY_REGEX.match(device)
+            if mtch:  # this line describes a device (not a subdevice)
                 print(f'{device} ... ', end='')
                 if AUDIO_DEVICE_REGEX.search(device):
                     print('Y')
-                    return ['--aout=alsa', f'--alsa-audio-device=hw:{match.group("card_id")},{match.group("device_id")}']
+                    return [
+                        '--aout=alsa',
+                        f'--alsa-audio-device=hw:{mtch.group("card_id")},{mtch.group("device_id")}'
+                    ]
                 print('n')
         print(
             f'AUDIO_DEVICE_REGEX {AUDIO_DEVICE_REGEX.pattern} did not match any audio devices. '
             'Using default audio settings instead.'
         )
         return []
-
 
     def get_media_player_status(self):
         """
