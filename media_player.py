@@ -32,9 +32,9 @@ SUBTITLES = os.getenv('SUBTITLES', 'true')
 VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 
 SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
-SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false')
+SYNC_IS_SERVER = True if os.getenv('SYNC_IS_SERVER', 'false') == 'true' else False
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
-IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER == 'true'
+IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -67,7 +67,10 @@ class MediaPlayer():
         }
         self.init_vlc()
 
+        # Variables used to interpolate the play time in get_current_time.
+        # Holds the last time reported by VLC.
         self.last_vlc_time = 0
+        # Holds the last clock time when VLC was asked for play time.
         self.time_at_last_poll = 0
 
         if IS_SYNCED_PLAYER:
@@ -98,11 +101,11 @@ class MediaPlayer():
         """
         Initialises variables and network objects needed to sync players.
         """
-        if SYNC_IS_SERVER == 'true':
-            self.server = network.Server('', 10000)
+        if SYNC_IS_SERVER:
+            self.server = network.Server('', port=10000)
 
         if SYNC_CLIENT_TO:
-            self.client = network.Client(SYNC_CLIENT_TO, 10000)
+            self.client = network.Client(SYNC_CLIENT_TO, port=10000)
 
     @staticmethod
     def datetime_now():
@@ -377,12 +380,17 @@ class MediaPlayer():
         """
         Function to interpolate VLC player's play time.
         This is to overcome the limitation where the get_time() function only returns
-        a value every 250 ms.
+        a value every 250 ms. We get VLC's reported play time using get_time() and add
+        to that the time elapsed since the last correct VLC time report.
         """
-        vlc_time = self.vlc['player'].get_time()
+        vlc_time = self.vlc['player'].get_time() # get VLC's reported time
 
+        # If VLC's reported time hasn't changed, add to that the time elapsed
+        # since the last time it did change.
         if self.last_vlc_time == vlc_time and self.last_vlc_time != 0:
             vlc_time += int(vlc.libvlc_clock() / 1000) - self.time_at_last_poll
+        # If VLC's reported time did change, then it is the correct time and we
+        # reset time_at_last_poll to calculate the elapsed time from this point on.
         else:
             self.last_vlc_time = vlc_time
             self.time_at_last_poll = int(vlc.libvlc_clock() / 1000)
@@ -412,7 +420,7 @@ class MediaPlayer():
                     print('Drifted, syncing...')
                     self.vlc['player'].set_time(server_time)
 
-        if SYNC_IS_SERVER == 'true':
+        if SYNC_IS_SERVER:
             while True:
                 time.sleep(1)
                 self.server.send(self.get_current_time())
