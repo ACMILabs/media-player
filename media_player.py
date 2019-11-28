@@ -383,7 +383,7 @@ class MediaPlayer():
         a value every 250 ms. We get VLC's reported play time using get_time() and add
         to that the time elapsed since the last correct VLC time report.
         """
-        vlc_time = self.vlc['player'].get_time() # get VLC's reported time
+        vlc_time = self.vlc['player'].get_time()  # get VLC's reported time
 
         # If VLC's reported time hasn't changed, add to that the time elapsed
         # since the last time it did change.
