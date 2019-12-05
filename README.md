@@ -41,24 +41,24 @@ $ git remote set-url balena --push --add <username>@git.balena-cloud.com:<userna
 $ git remote set-url balena --push --add <username>@git.balena-cloud.com:<username>/<x86 balena app name>.git
 ```
 
-## Testing and linting
-
-1. Build the development container `$ docker-compose up --build`
-2. Run testing & linting: `$ docker exec -it mediaplayer make linttest`
-
-## Installation on macOS
+## Installation on developer machine
 
 * Clone this repository.
-* Install VLC `brew cask install vlc`
-* `pip install -r requirements.txt`
-* `mv config.tmpl.env config.env`
-* Create a Playlist in XOS with resources.
-* Edit the `config.env` to point to the ID of your Playlist in Django.
-* Run `source config.env` to load environment variables.
-* Turn on the http server: VLC > Preferences > http web interface > tick the box & set the password you saved to `config.env`.
-* Run `python media_player.py`
+
+* `$ cd development`
+* Build the development container `$ docker-compose up`
+* `cp dev.tmpl.env dev.env`
+* Edit the `dev.env` with any required values (a default playlist will be used otherwise)
+* Run `cd development && docker-compose up`
+
+## Testing and linting
+
+`$ docker exec -it mediaplayer make linttest`
+
 
 ## Installation on Windows
+
+(These instructions are provided for Legacy purposes - we've switched to Balena-only deployment)
 
 * Install [Git for Windows](https://git-scm.com/download/win).
 * In an admin PowerShell:

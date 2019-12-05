@@ -1,4 +1,6 @@
 import os
+import re
+import subprocess
 import time
 from datetime import datetime
 from threading import Thread
@@ -17,6 +19,7 @@ XOS_API_ENDPOINT = os.getenv('XOS_API_ENDPOINT')
 XOS_PLAYLIST_ENDPOINT = f'{XOS_API_ENDPOINT}playlists/'
 XOS_PLAYLIST_ID = os.getenv('XOS_PLAYLIST_ID', '1')
 XOS_MEDIA_PLAYER_ID = os.getenv('XOS_MEDIA_PLAYER_ID', '1')
+AUDIO_DEVICE_REGEX = re.compile(os.getenv('AUDIO_DEVICE_REGEX', ''), flags=re.IGNORECASE)
 DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS', '0.1')
@@ -43,6 +46,9 @@ PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=R
 
 # Save resources to a persistent storage location
 RESOURCES_PATH = '/data/resources/'
+
+# Parse the output of `aplay -l`
+APLAY_REGEX = re.compile(r'card (?P<card_id>\d+): (.+), device (?P<device_id>\d+): (.+)')
 
 
 class MediaPlayer():
@@ -71,7 +77,7 @@ class MediaPlayer():
         Documentation for these can be found here:
             http://www.olivieraubert.net/vlc/python-ctypes/doc/
         """
-        flags = ['--quiet']
+        flags = ['--quiet'] + MediaPlayer.get_audio_flags()
         if SUBTITLES == 'false':
             flags.append('--no-sub-autodetect-file')
         self.vlc['instance'] = vlc.Instance(flags)
@@ -89,6 +95,50 @@ class MediaPlayer():
         timezone setting in an ISO 8601 format.
         """
         return datetime.now(PYTZ_TIMEZONE).isoformat()
+
+    @staticmethod
+    def get_audio_flags():
+        """
+        Examine the AUDIO_DEVICE_REGEX value and, if given and not 'mute', compare with the
+        output from `aplay -l` to determine the audio device to use, and return the flags to
+        tell VLC to use that output. If we can't find a match, use the default VLC settings.
+
+        Useful values, that should work on Raspberry Pi|Dell:
+
+        dante|USB Audio # a USB Dante device
+        hdmi|hdmi 0 # the first hdmi device
+        hdmi1|hdmi 1 # the second hdmi device
+
+        If the value is 'mute', 'disabled', or 'no-audio' the `--no-audio` flag is used with VLC.
+
+        If the value is 'null' or 'none', or not given, the default VLC settings are used.
+        """
+        if not AUDIO_DEVICE_REGEX.pattern or AUDIO_DEVICE_REGEX.pattern.lower() in ('null', 'none'):
+            print('No AUDIO_DEVICE_REGEX setting provided. Using default audio settings.')
+            return []
+
+        if AUDIO_DEVICE_REGEX.pattern.lower() in ('mute', 'disable', 'disabled', 'no-audio'):
+            print('Disabling Audio')
+            return ['--no-audio']
+
+        audio_devices = subprocess.check_output(['aplay', '-l']).decode('utf-8').splitlines()
+        print(f'Scanning audio devices for match to {AUDIO_DEVICE_REGEX.pattern}')
+        for device in audio_devices:
+            mtch = APLAY_REGEX.match(device)
+            if mtch:  # this line describes a device (not a subdevice)
+                print(f'{device} ... ', end='')
+                if AUDIO_DEVICE_REGEX.search(device):
+                    print('Y')
+                    return [
+                        '--aout=alsa',
+                        f'--alsa-audio-device=hw:{mtch.group("card_id")},{mtch.group("device_id")}'
+                    ]
+                print('n')
+        print(
+            f'AUDIO_DEVICE_REGEX {AUDIO_DEVICE_REGEX.pattern} did not match any audio devices. '
+            'Using default audio settings instead.'
+        )
+        return []
 
     def get_media_player_status(self):
         """
