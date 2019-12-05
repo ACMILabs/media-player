@@ -7,7 +7,7 @@ extension-pkg-whitelist=alsaaudio
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
-ignore=CVS, migrations, settings, venv, Makefile, Dockerfile, Dockerfile.template, Dockerfile.raspberrypi4-64, requirements, resources, tests
+ignore=CVS, migrations, settings, venv, Makefile, Dockerfile, Dockerfile.template, Dockerfile.raspberrypi4-64, requirements, resources
 
 # Add files or directories matching the regex patterns to the blacklist. The
 # regex matches against base names, not paths.
@@ -140,7 +140,8 @@ disable=print-statement,
         exception-escape,
         comprehension-escape,
         # ACMI entries
-        missing-docstring
+        missing-docstring,
+        no-self-use
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -297,7 +298,7 @@ dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore.
-ignored-argument-names=_.*|^ignored_|^unused_
+ignored-argument-names=_.*|^ignored_|^unused_|args|kwargs
 
 # Tells whether we should check for unused import in __init__ files.
 init-import=no
