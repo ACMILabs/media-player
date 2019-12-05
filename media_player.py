@@ -131,7 +131,7 @@ class MediaPlayer():
                     print('Y')
                     return [
                         '--aout=alsa',
-                        f'--alsa-audio-device=hw:{mtch.group('card_id')},{mtch.group('device_id')}'
+                        f'--alsa-audio-device=hw:{mtch.group("card_id")},{mtch.group("device_id")}'
                     ]
                 print('n')
         print(
