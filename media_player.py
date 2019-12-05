@@ -109,14 +109,16 @@ class MediaPlayer():
         hdmi|hdmi 0 # the first hdmi device
         hdmi1|hdmi 1 # the second hdmi device
 
-        If the value is "mute" or "no-audio" the `--no-audio` flag is used with VLC.
+        If the value is 'mute', 'disabled', or 'no-audio' the `--no-audio` flag is used with VLC.
+
+        If the value is 'null' or 'none', or not given, the default VLC settings are used.
         """
-        if not AUDIO_DEVICE_REGEX.pattern:
+        if not AUDIO_DEVICE_REGEX.pattern or AUDIO_DEVICE_REGEX.pattern.lower() in ('null', 'none'):
             print('No AUDIO_DEVICE_REGEX setting provided. Using default audio settings.')
             return []
 
-        if AUDIO_DEVICE_REGEX.pattern.lower() in ("mute", "no-audio"):
-            print("Disabling Audio")
+        if AUDIO_DEVICE_REGEX.pattern.lower() in ('mute', 'disable', 'disabled', 'no-audio'):
+            print('Disabling Audio')
             return ['--no-audio']
 
         audio_devices = subprocess.check_output(['aplay', '-l']).decode('utf-8').splitlines()
@@ -129,7 +131,7 @@ class MediaPlayer():
                     print('Y')
                     return [
                         '--aout=alsa',
-                        f'--alsa-audio-device=hw:{mtch.group("card_id")},{mtch.group("device_id")}'
+                        f'--alsa-audio-device=hw:{mtch.group('card_id')},{mtch.group('device_id')}'
                     ]
                 print('n')
         print(
