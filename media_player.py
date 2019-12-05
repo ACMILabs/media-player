@@ -35,6 +35,7 @@ SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false') == 'true'
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
 IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
+DEBUG = os.getenv('DEBUG', 'false') == 'true'
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -415,9 +416,15 @@ class MediaPlayer():
                 if not server_time:
                     continue
                 client_time = self.get_current_time()
-                print(server_time, client_time)
+                if DEBUG:
+                    print(
+                        f'server time: {server_time}, '
+                        f'client time: {client_time}, '
+                        f'drift: {abs(client_time - server_time)}'
+                    )
                 if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
-                    print('Drifted, syncing...')
+                    if DEBUG:
+                        print('Drifted, syncing...')
                     self.vlc['player'].set_time(server_time)
 
         if SYNC_IS_SERVER:
