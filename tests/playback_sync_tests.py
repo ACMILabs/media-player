@@ -1,8 +1,6 @@
 import signal
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from media_player import MediaPlayer
 
 TIMEOUT_SECS = 5
@@ -13,17 +11,20 @@ def assert_called_in_infinite_loop(func_called, func_infinite):
     Helper function that asserts whether a function is called within an infinite loop.
     """
     def infinite_loop_terminator(signum, frame):
-        raise Exception('Infinite loop has run for too long.')
+        raise TimeoutError('Infinite loop has run for too long.')
     signal.signal(signal.SIGALRM, infinite_loop_terminator)
 
-    func_mock = MagicMock(side_effect=Exception(f'{func_called} is called'))
+    func_mock = MagicMock(side_effect=AssertionError(f'{func_called} is called'))
     with patch(func_called, func_mock):
         try:
             signal.alarm(TIMEOUT_SECS)
             func_infinite()
             print(f'Error: Function {func_called} was not called.')
             assert False
-        except Exception as ex:
+        except TimeoutError:
+            signal.alarm(0)
+            assert False
+        except AssertionError as ex:
             signal.alarm(0)
             assert f'{func_called} is called' in str(ex)
 
@@ -37,8 +38,7 @@ def test_client_set_up():
     """
     player = MediaPlayer()
     assert player.client is not None
-    with pytest.raises(AttributeError):
-        player.server
+    assert getattr(player, 'server', None) is None
 
 
 @patch('media_player.network.Server', MagicMock())
@@ -50,13 +50,12 @@ def test_server_set_up():
     """
     player = MediaPlayer()
     assert player.server is not None
-    with pytest.raises(AttributeError):
-        player.client
+    assert getattr(player, 'client', None) is None
 
 
 @patch('media_player.vlc.libvlc_clock', MagicMock(
-    side_effect=[0, 10 * (10 ** 3), 20 * (10 ** 3)])
-)
+    side_effect=[0, 10 * (10 ** 3), 20 * (10 ** 3)]
+))
 def test_get_current_time_interpolates():
     """
     Check that get_current_time interpolates the time from vlc.
