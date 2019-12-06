@@ -13,6 +13,7 @@ import sentry_sdk
 import vlc
 from kombu import Connection, Exchange, Queue
 
+import network
 import status_client
 
 XOS_API_ENDPOINT = os.getenv('XOS_API_ENDPOINT')
@@ -32,6 +33,12 @@ BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 SENTRY_ID = os.getenv('SENTRY_ID')
 SUBTITLES = os.getenv('SUBTITLES', 'true')
 VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
+
+SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
+SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false') == 'true'
+SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
+IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
+DEBUG = os.getenv('DEBUG', 'false') == 'true'
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -67,6 +74,15 @@ class MediaPlayer():
         }
         self.init_vlc()
 
+        # Variables used to interpolate the play time in get_current_time.
+        # Holds the last time reported by VLC.
+        self.last_vlc_time = 0
+        # Holds the last clock time when VLC was asked for play time.
+        self.time_at_last_poll = 0
+
+        if IS_SYNCED_PLAYER:
+            self.setup_sync()
+
     def init_vlc(self):
         """
         Initialise the VLC variables:
@@ -87,6 +103,16 @@ class MediaPlayer():
 
         self.vlc['player'].set_fullscreen(True)
         self.vlc['list_player'].set_playback_mode(vlc.PlaybackMode.loop)
+
+    def setup_sync(self):
+        """
+        Initialises variables and network objects needed to sync players.
+        """
+        if SYNC_IS_SERVER:
+            self.server = network.Server('', port=10000)
+
+        if SYNC_CLIENT_TO:
+            self.client = network.Client(SYNC_CLIENT_TO, port=10000)
 
     @staticmethod
     def datetime_now():
@@ -401,6 +427,61 @@ class MediaPlayer():
             print(message)
             sentry_sdk.capture_exception(exception)
 
+    def get_current_time(self):
+        """
+        Function to interpolate VLC player's play time.
+        This is to overcome the limitation where the get_time() function only returns
+        a value every 250 ms. We get VLC's reported play time using get_time() and add
+        to that the time elapsed since the last correct VLC time report.
+        """
+        vlc_time = self.vlc['player'].get_time()  # get VLC's reported time
+
+        # If VLC's reported time hasn't changed, add to that the time elapsed
+        # since the last time it did change.
+        if self.last_vlc_time == vlc_time and self.last_vlc_time != 0:
+            vlc_time += int(vlc.libvlc_clock() / 1000) - self.time_at_last_poll
+        # If VLC's reported time did change, then it is the correct time and we
+        # reset time_at_last_poll to calculate the elapsed time from this point on.
+        else:
+            self.last_vlc_time = vlc_time
+            self.time_at_last_poll = int(vlc.libvlc_clock() / 1000)
+        return vlc_time
+
+    def run_timer(self):
+        """
+        Constantly call get_current_time to have an accurate time whenever get_current_time
+        is called elsewhere.
+        """
+        while True:
+            self.get_current_time()
+
+    def sync_to_server(self):
+        """
+        For client players, look for data from the server, check if syncing is needed and sync.
+        For server players, send the player's current time every second.
+        """
+        if SYNC_CLIENT_TO:
+            while True:
+                server_time = self.client.receive()
+                if not server_time:
+                    continue
+                client_time = self.get_current_time()
+                if DEBUG:
+                    print(
+                        f'server time: {server_time}, '
+                        f'client time: {client_time}, '
+                        f'drift: {abs(client_time - server_time)}'
+                    )
+                if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
+                    if DEBUG:
+                        print('Drifted, syncing...')
+                    self.vlc['player'].set_time(server_time)
+
+        if SYNC_IS_SERVER:
+            while True:
+                time.sleep(1)
+                self.server.send(self.get_current_time())
+
 
 if __name__ == "__main__":
     # pylint: disable=invalid-name
@@ -408,6 +489,13 @@ if __name__ == "__main__":
     media_player = MediaPlayer()
     media_player.download_playlist_from_xos()
     media_player.vlc['list_player'].play()
+
+    if IS_SYNCED_PLAYER:
+        run_timer_thread = Thread(target=media_player.run_timer)
+        run_timer_thread.start()
+
+        sync_thread = Thread(target=media_player.sync_to_server)
+        sync_thread.start()
 
     # Wait for VLC to launch
     time.sleep(5)
