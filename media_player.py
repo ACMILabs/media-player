@@ -488,6 +488,16 @@ if __name__ == "__main__":
 
     media_player = MediaPlayer()
     media_player.download_playlist_from_xos()
+    # Ready to play, so set background blank
+    subprocess.check_output([
+        'xfconf-query',
+        '--channel',
+        'xfce4-desktop',
+        '--property',
+        '/backdrop/screen0/monitor0/workspace0/last-image',
+        '--set',
+        '/code/resources/blank-1920x1080.png'
+    ])
     media_player.vlc['list_player'].play()
 
     if IS_SYNCED_PLAYER:
