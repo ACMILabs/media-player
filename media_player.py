@@ -96,7 +96,7 @@ class MediaPlayer():
         flags = ['--quiet'] + MediaPlayer.get_audio_flags()
         if SUBTITLES == 'false':
             flags.append('--no-sub-autodetect-file')
-        if DEBUG == 'true':
+        if DEBUG:
             flags.append('-vv')
         self.vlc['instance'] = vlc.Instance(flags)
         self.vlc['list_player'] = self.vlc['instance'].media_list_player_new()
