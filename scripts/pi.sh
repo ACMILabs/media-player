@@ -25,5 +25,4 @@ unclutter -display :0 -idle 0.1 &
 # Unmute system audio
 # ./scripts/unmute.sh
 
-
 python3 media_player.py
