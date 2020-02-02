@@ -97,6 +97,8 @@ class MediaPlayer():
         if SUBTITLES == 'false':
             flags.append('--no-sub-autodetect-file')
         flags.append('--freetype-font=FaktPro')
+        flags.append('--freetype-background-opacity=255')
+        flags.append('--freetype-background-color=0')
         self.vlc['instance'] = vlc.Instance(flags)
         self.vlc['list_player'] = self.vlc['instance'].media_list_player_new()
         self.vlc['player'] = self.vlc['list_player'].get_media_player()
