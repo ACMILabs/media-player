@@ -1,6 +1,7 @@
 config.env
 dev.env
 resources/*
+!resources/FaktPro-Bold.otf
 !resources/example.mp4
 !resources/acmi-1920x1080.png
 !resources/blank-1920x1080.png
