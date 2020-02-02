@@ -26,5 +26,4 @@ unclutter -display :0 -idle 0.1 &
 # ./scripts/unmute.sh
 
 
-mv FaktPro-Bold.otf /usr/share/fonts/truetype/freefont/FaktPro-Bold.otf
 python3 media_player.py

@@ -62,6 +62,8 @@ COPY ./conf/xinitrc /root/.config/xfce4/
 COPY . /code/
 WORKDIR /code/
 
+COPY ./resources/FaktPro-Bold.otf /usr/share/fonts/truetype/freefont/FaktPro-Bold.otf
+
 # x86.sh will run when the container starts up on any non-Raspberry Pi device (i.e. Intel OptiPlex, NUC)
 # CMD ["bash"]
 CMD ["bash","scripts/x86.sh"]
