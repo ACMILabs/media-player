@@ -1,7 +1,10 @@
 config.env
 dev.env
 resources/*
+!resources/FaktPro-Normal.otf
+!resources/FaktPro-NormalItalic.otf
 !resources/FaktPro-Bold.otf
+!resources/FaktPro-BoldItalic.otf
 !resources/example.mp4
 !resources/acmi-1920x1080.png
 !resources/blank-1920x1080.png
