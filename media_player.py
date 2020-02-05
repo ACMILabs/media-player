@@ -32,8 +32,7 @@ BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
 BALENA_SUPERVISOR_API_KEY = os.getenv('BALENA_SUPERVISOR_API_KEY')
 SENTRY_ID = os.getenv('SENTRY_ID')
 SUBTITLES = os.getenv('SUBTITLES', 'true')
-# Subtitles size options: 0 (Auto), 20 (Smaller), 18 (Small), 16 (Normal), 12 (Large), 6 (Larger)
-SUBTITLES_FONT_SIZE = os.getenv('SUBTITLES_FONT_SIZE', '0')
+SUBTITLES_FONT_SIZE = os.getenv('SUBTITLES_FONT_SIZE')  # options: 0-4096
 SUBTITLES_FONT_WEIGHT = os.getenv('SUBTITLES_FONT_WEIGHT', 'regular')  # options: 'regular', 'bold'
 VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 
@@ -99,7 +98,10 @@ class MediaPlayer():
         flags = ['--quiet'] + MediaPlayer.get_audio_flags()
         if SUBTITLES == 'false':
             flags.append('--no-sub-autodetect-file')
-        flags.append(f'--freetype-rel-fontsize={SUBTITLES_FONT_SIZE}')
+        if (SUBTITLES_FONT_SIZE and
+                int(SUBTITLES_FONT_SIZE) >= 0 and
+                int(SUBTITLES_FONT_SIZE) <= 4096):
+            flags.append(f'--freetype-fontsize={SUBTITLES_FONT_SIZE}')
         if SUBTITLES_FONT_WEIGHT == 'bold':
             flags.append('--freetype-bold')
         flags.append('--freetype-font=FaktPro')
