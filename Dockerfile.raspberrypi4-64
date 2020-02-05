@@ -40,7 +40,7 @@ RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
 ENV UDEV 1
 
 # Non-root user for VLC
-RUN useradd sudo --create-home --shell /bin/bash vlcuser
+RUN useradd --create-home --shell /bin/bash vlcuser
 USER vlcuser
 WORKDIR /home/vlcuser
 
