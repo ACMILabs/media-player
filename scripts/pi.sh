@@ -4,7 +4,7 @@
 # sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
 # Remove the X server lock file so ours starts cleanly
-sudo rm /tmp/.X0-lock &>/dev/null || true
+rm /tmp/.X0-lock &>/dev/null || true
 
 # Set the display to use
 export DISPLAY=:0
@@ -12,12 +12,9 @@ export DISPLAY=:0
 # Set the DBUS address for sending around system messages
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
-# Allow vlcuser to start X
-sudo xhost +SI:localuser:vlcuser
-
 # start desktop manager
 echo "STARTING X"
-sudo DISPLAY=:0 startx -- -nocursor &
+startx -- -nocursor &
 
 # TODO: work out how to detect X has started
 sleep 5
@@ -28,4 +25,7 @@ unclutter -display :0 -idle 0.1 &
 # Unmute system audio
 # ./scripts/unmute.sh
 
-python3 media_player.py
+# Allow vlcuser to start X
+xhost +SI:localuser:vlcuser
+
+sudo -u vlcuser python3 media_player.py
