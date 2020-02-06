@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Allow VLC to run under root
-sed -i 's/geteuid/getppid/' /usr/bin/vlc
+# sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
 # Remove the X server lock file so ours starts cleanly
-rm /tmp/.X0-lock &>/dev/null || true
+sudo rm /tmp/.X0-lock &>/dev/null || true
 
 # Set the display to use
 export DISPLAY=:0
@@ -14,7 +14,7 @@ export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
 # start desktop manager
 echo "STARTING X"
-startx -- -nocursor &
+sudo startx -- -nocursor &
 
 # TODO: work out how to detect X has started
 sleep 5
