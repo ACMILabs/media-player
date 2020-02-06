@@ -41,8 +41,8 @@ ENV UDEV 1
 
 # Non-root user for VLC
 RUN useradd --create-home --shell /bin/bash vlcuser
-USER vlcuser
 RUN echo "vlcuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+USER vlcuser
 WORKDIR /home/vlcuser
 
 COPY ./requirements/base.txt /code/requirements/base.txt

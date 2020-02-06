@@ -12,9 +12,12 @@ export DISPLAY=:0
 # Set the DBUS address for sending around system messages
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
+# Allow vlcuser to start X
+sudo xhost +SI:localuser:vlcuser
+
 # start desktop manager
 echo "STARTING X"
-sudo startx -- -nocursor &
+sudo DISPLAY=:0 startx -- -nocursor &
 
 # TODO: work out how to detect X has started
 sleep 5

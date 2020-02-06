@@ -1,4 +1,7 @@
-from prometheus_client import Counter, Gauge, Info, start_http_server
+import subprocess
+
+from prometheus_client import Counter, Gauge, Info
+
 
 DEVICE_INFO = Info('device', 'Device')
 FILENAME_INFO = Info('filename', 'Filename')
@@ -39,4 +42,5 @@ def set_status(
     SYSTEM_VOLUME_GAUGE.set(media_player_status['system_volume'])
 
 
-start_http_server(1007)
+# Hopefully this will work with vlcuser
+subprocess.run(['sudo', 'python3', '-m', 'http.server', '1007'], stdout=subprocess.PIPE)
