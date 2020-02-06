@@ -42,6 +42,7 @@ ENV UDEV 1
 # Non-root user for VLC
 RUN useradd --create-home --shell /bin/bash vlcuser
 RUN echo "vlcuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+RUN usermod -a -G video vlcuser
 
 COPY ./requirements/base.txt /code/requirements/base.txt
 COPY ./requirements/prod.txt /code/requirements/prod.txt
@@ -53,4 +54,5 @@ WORKDIR /code/
 COPY ./resources/FaktPro-Bold.otf /usr/share/fonts/truetype/freefont/FaktPro-Bold.otf
 
 # main.py will run when container starts up on the device
+# CMD ["bash"]
 CMD ["bash","scripts/pi.sh"]

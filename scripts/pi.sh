@@ -28,4 +28,4 @@ unclutter -display :0 -idle 0.1 &
 # Allow vlcuser to start X
 xhost +SI:localuser:vlcuser
 
-sudo -u vlcuser python3 media_player.py
+sudo -u vlcuser -E env python3 media_player.py
