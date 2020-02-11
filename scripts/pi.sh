@@ -12,7 +12,14 @@ export DISPLAY=:0
 # Set the DBUS address for sending around system messages
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
-# start desktop manager
+# Set XDG_RUNTIME_DIR
+mkdir -pv ~/.cache/xdgr
+export XDG_RUNTIME_DIR=$PATH:~/.cache/xdgr
+
+# Create Xauthority
+touch /root/.Xauthority
+
+# Start desktop manager
 echo "STARTING X"
 startx -- -nocursor &
 
