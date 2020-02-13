@@ -55,10 +55,6 @@ COPY ./requirements/base.txt /code/requirements/base.txt
 COPY ./requirements/prod.txt /code/requirements/prod.txt
 RUN pip install -Ur /code/requirements/prod.txt
 
-# Remove the panel completely
-COPY ./conf/xinitrc /etc/xdg/xfce4/
-COPY ./conf/xinitrc /root/.config/xfce4/
-
 COPY . /code/
 WORKDIR /code/
 
