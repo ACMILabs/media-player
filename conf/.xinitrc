@@ -195,4 +195,6 @@ EOF
                 ;;
 esac
 
-xsetroot -bg white -fg red  -solid black -cursor_name watch
+# xsetroot -bg white -fg red  -solid black -cursor_name watch
+
+exec ck-launch-session startxfce4
