@@ -191,7 +191,7 @@ class MediaPlayer():
             except TypeError:
                 # No label ID for this playlist item
                 label_id = None
-            return {
+            media_player_status = {
                 'datetime': self.datetime_now(),
                 'playlist_id': int(XOS_PLAYLIST_ID),
                 'media_player_id': int(XOS_MEDIA_PLAYER_ID),
@@ -212,9 +212,10 @@ class MediaPlayer():
             # playlist is empty
             message = f'No playable items in playlist {int(XOS_PLAYLIST_ID)} '\
                       f'on mediaplayer {int(XOS_MEDIA_PLAYER_ID)}'
-            return {
+            media_player_status = {
                 'error': message,
             }
+        return media_player_status
 
     def post_playback_to_broker(self):  # pylint: disable=R0914
         """
@@ -257,7 +258,7 @@ class MediaPlayer():
                     print(message)
                     print(f'Current vlc_status: {media_player_status}')
                 elif vlc_connection_attempts == VLC_CONNECTION_RETRIES:
-                    print(f'Tried {VLC_CONNECTION_RETRIES} times. '\
+                    print(f'Tried {VLC_CONNECTION_RETRIES} times. '
                           f'Giving up and posting error to Sentry...')
                     sentry_sdk.capture_exception(error)
 
