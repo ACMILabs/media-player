@@ -212,7 +212,6 @@ class MediaPlayer():
             # playlist is empty
             message = f'No playable items in playlist {int(XOS_PLAYLIST_ID)} '\
                       f'on mediaplayer {int(XOS_MEDIA_PLAYER_ID)}'
-            print(message)
             return {
                 'error': message,
             }
@@ -252,11 +251,14 @@ class MediaPlayer():
 
             except KeyError as error:
                 vlc_connection_attempts += 1
-                if vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
-                    template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
-                    message = template.format(type(error).__name__, error.args)
+                template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+                message = template.format(type(error).__name__, error.args)
+                if vlc_connection_attempts < VLC_CONNECTION_RETRIES:
                     print(message)
                     print(f'Current vlc_status: {media_player_status}')
+                elif vlc_connection_attempts == VLC_CONNECTION_RETRIES:
+                    print(f'Tried {VLC_CONNECTION_RETRIES} times. '\
+                          f'Giving up and posting error to Sentry...')
                     sentry_sdk.capture_exception(error)
 
             except (TimeoutError, ValueError) as error:
