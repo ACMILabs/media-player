@@ -516,8 +516,12 @@ if __name__ == "__main__":
         sync_thread = Thread(target=media_player.sync_to_server)
         sync_thread.start()
 
-    # Wait for VLC to launch
-    time.sleep(5)
-
-    playback_time_thread = Thread(target=media_player.post_playback_to_broker)
-    playback_time_thread.start()
+    if media_player.playlist:
+        # Wait for VLC to launch
+        time.sleep(5)
+        playback_time_thread = Thread(target=media_player.post_playback_to_broker)
+        playback_time_thread.start()
+    else:
+        print('The playlist appears to be empty... not attempting to post playback status.')
+        while True:
+            pass
