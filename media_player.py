@@ -182,34 +182,40 @@ class MediaPlayer():
         Compile the media player status into a dictionary.
         """
         media = self.vlc['player'].get_media()
-        if not media:
+        if media:
+            stats = vlc.MediaStats()
+            media.get_stats(stats)
+            playlist_position = self.vlc['playlist'].index_of_item(media)
+            try:
+                label_id = self.playlist[playlist_position]['label']['id']
+            except TypeError:
+                # No label ID for this playlist item
+                label_id = None
+            return {
+                'datetime': self.datetime_now(),
+                'playlist_id': int(XOS_PLAYLIST_ID),
+                'media_player_id': int(XOS_MEDIA_PLAYER_ID),
+                'label_id': label_id,
+                'playlist_position': playlist_position,
+                'playback_position': self.vlc['player'].get_position(),
+                'dropped_audio_frames': stats.lost_abuffers,
+                'dropped_video_frames': stats.lost_pictures,
+                'duration': self.vlc['player'].get_length(),
+                'player_volume': \
+                # Player value 0-256
+                str(self.vlc['player'].audio_get_volume() / 256 * 10),
+                'system_volume': \
+                # System value 0-100
+                str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
+            }
+        else:
             # playlist is empty
-            raise ValueError('No playable items in playlist')
-        stats = vlc.MediaStats()
-        media.get_stats(stats)
-        playlist_position = self.vlc['playlist'].index_of_item(media)
-        try:
-            label_id = self.playlist[playlist_position]['label']['id']
-        except TypeError:
-            # No label ID for this playlist item
-            label_id = None
-        return {
-            'datetime': self.datetime_now(),
-            'playlist_id': int(XOS_PLAYLIST_ID),
-            'media_player_id': int(XOS_MEDIA_PLAYER_ID),
-            'label_id': label_id,
-            'playlist_position': playlist_position,
-            'playback_position': self.vlc['player'].get_position(),
-            'dropped_audio_frames': stats.lost_abuffers,
-            'dropped_video_frames': stats.lost_pictures,
-            'duration': self.vlc['player'].get_length(),
-            'player_volume': \
-            # Player value 0-256
-            str(self.vlc['player'].audio_get_volume() / 256 * 10),
-            'system_volume': \
-            # System value 0-100
-            str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
-        }
+            message = f'No playable items in playlist {int(XOS_PLAYLIST_ID)} '\
+                      f'on mediaplayer {int(XOS_MEDIA_PLAYER_ID)}'
+            print(message)
+            return {
+                'error': message,
+            }
 
     def post_playback_to_broker(self):  # pylint: disable=R0914
         """
