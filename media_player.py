@@ -275,8 +275,8 @@ class MediaPlayer():
         Posts to the Balena supervisor to restart the media player service.
         """
         try:
-            balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/\
-                restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
+            balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/'\
+                             f'restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
             json = {
                 'serviceName': BALENA_SERVICE_NAME
             }
