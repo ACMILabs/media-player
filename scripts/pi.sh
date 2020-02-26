@@ -26,10 +26,6 @@ startx -- :0 &
 # TODO: work out how to detect X has started
 sleep 5
 
-# Turn off display blanking and power management
-echo "Disabling display blanking and power management"
-xset s off -dpms
-
 # Hide the cursor
 unclutter -display :0 -idle 0.1 &
 
