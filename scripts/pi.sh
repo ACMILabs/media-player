@@ -6,9 +6,6 @@ sed -i 's/geteuid/getppid/' /usr/bin/vlc
 # Remove the X server lock file so ours starts cleanly
 rm /tmp/.X0-lock &>/dev/null || true
 
-# By default docker gives us 64MB of shared memory size but to display heavy apps we need more.
-sudo umount /dev/shm && sudo mount -t tmpfs shm /dev/shm
-
 # Set the display to use
 export DISPLAY=:0
 
