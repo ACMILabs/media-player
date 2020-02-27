@@ -51,5 +51,9 @@ COPY ./resources/FaktPro-NormalItalic.otf /usr/share/fonts/truetype/freefont/Fak
 COPY ./resources/FaktPro-Bold.otf /usr/share/fonts/truetype/freefont/FaktPro-Bold.otf
 COPY ./resources/FaktPro-BoldItalic.otf /usr/share/fonts/truetype/freefont/FaktPro-BoldItalic.otf
 
+# Create swap file
+COPY /conf/dphys-swapfile /etc/dphys-swapfile
+CMD ["/etc/init.d/dphys-swapfile", "restart"]
+
 # main.py will run when container starts up on the device
 CMD ["bash","scripts/pi.sh"]
