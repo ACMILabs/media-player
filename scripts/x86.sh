@@ -3,30 +3,35 @@
 # Allow VLC to run under root
 sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
-export DISPLAY=:0.0
+# Remove the X server lock file so ours starts cleanly
+rm /tmp/.X0-lock &>/dev/null || true
+
+# Print all of the current displays used by processes
+echo "Displays being used before starting X11"
+ps -u $(id -u) -o pid= | \
+  while read pid; do
+    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+  done | sort -u
+
+# Set the display to use
+export DISPLAY=:0
+
+# Set the DBUS address for sending around system messages
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
-# rotate screen if env variable is set [normal, inverted, left or right]
-if [[ ! -z "$ROTATE_DISPLAY" ]]; then
-  echo "YES"
-  (sleep 3 && DISPLAY=:0 xrandr -o $ROTATE_DISPLAY) &
-fi
+# Set XDG_RUNTIME_DIR
+mkdir -pv ~/.cache/xdgr
+export XDG_RUNTIME_DIR=$PATH:~/.cache/xdgr
 
-# Set display to 4K
-# xrandr --output HDMI-1 --mode 3840x2160
+# Create Xauthority
+touch /root/.Xauthority
 
-# start desktop manager
+# Start desktop manager
 echo "STARTING X"
-startx &
+startx -- -nocursor &
 
 # TODO: work out how to detect X has started
 sleep 5
-
-# uncomment to start x without mouse cursor
-# startx -- -nocursor &
-
-# uncomment to open an application instead of the desktop
-# startx xterm 
 
 # Hide the cursor
 unclutter -display :0 -idle 0.1 &
@@ -40,7 +45,36 @@ xfconf-query -c xfce4-desktop -np '/desktop-icons/style' -t 'int' -s '0'
 # Hide X panel
 xfce4-panel -q
 
+# rotate screen if env variable is set [normal, inverted, left or right]
+if [[ ! -z "$ROTATE_DISPLAY" ]]; then
+  echo "Rotating display..."
+  (sleep 3 && DISPLAY=:0 xrandr -o $ROTATE_DISPLAY) &
+fi
+
+# Set display to 4K
+# xrandr --output HDMI-1 --mode 3840x2160
+
 # Unmute system audio
 # ./scripts/unmute.sh
+
+# Print all of the current displays used by processes
+echo "Displays in use before starting Media Player"
+DISPLAYS=`ps -u $(id -u) -o pid= | \
+  while read pid; do
+    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+  done | sort -u`
+echo $DISPLAYS
+
+# If DISPLAYS doesn't include 0.0 set the new display
+if [[ $DISPLAYS == *"0.0"* ]]; then
+  echo "Display looks good"
+else
+  echo "Settings new display"
+  LAST_DISPLAY=`ps -u $(id -u) -o pid= | \
+    while read pid; do
+      cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+    done | sort -u | tail -n1`
+  export $LAST_DISPLAY
+fi
 
 python media_player.py
