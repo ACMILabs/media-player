@@ -21,7 +21,7 @@ touch /root/.Xauthority
 
 # Start desktop manager
 echo "STARTING X"
-startx -- :0 &
+startx -- -nocursor &
 
 # TODO: work out how to detect X has started
 sleep 5
