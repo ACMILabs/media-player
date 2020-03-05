@@ -182,34 +182,40 @@ class MediaPlayer():
         Compile the media player status into a dictionary.
         """
         media = self.vlc['player'].get_media()
-        if not media:
+        if media:
+            stats = vlc.MediaStats()
+            media.get_stats(stats)
+            playlist_position = self.vlc['playlist'].index_of_item(media)
+            try:
+                label_id = self.playlist[playlist_position]['label']['id']
+            except TypeError:
+                # No label ID for this playlist item
+                label_id = None
+            media_player_status = {
+                'datetime': self.datetime_now(),
+                'playlist_id': int(XOS_PLAYLIST_ID),
+                'media_player_id': int(XOS_MEDIA_PLAYER_ID),
+                'label_id': label_id,
+                'playlist_position': playlist_position,
+                'playback_position': self.vlc['player'].get_position(),
+                'dropped_audio_frames': stats.lost_abuffers,
+                'dropped_video_frames': stats.lost_pictures,
+                'duration': self.vlc['player'].get_length(),
+                'player_volume': \
+                # Player value 0-256
+                str(self.vlc['player'].audio_get_volume() / 256 * 10),
+                'system_volume': \
+                # System value 0-100
+                str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
+            }
+        else:
             # playlist is empty
-            raise ValueError('No playable items in playlist')
-        stats = vlc.MediaStats()
-        media.get_stats(stats)
-        playlist_position = self.vlc['playlist'].index_of_item(media)
-        try:
-            label_id = self.playlist[playlist_position]['label']['id']
-        except TypeError:
-            # No label ID for this playlist item
-            label_id = None
-        return {
-            'datetime': self.datetime_now(),
-            'playlist_id': int(XOS_PLAYLIST_ID),
-            'media_player_id': int(XOS_MEDIA_PLAYER_ID),
-            'label_id': label_id,
-            'playlist_position': playlist_position,
-            'playback_position': self.vlc['player'].get_position(),
-            'dropped_audio_frames': stats.lost_abuffers,
-            'dropped_video_frames': stats.lost_pictures,
-            'duration': self.vlc['player'].get_length(),
-            'player_volume': \
-            # Player value 0-256
-            str(self.vlc['player'].audio_get_volume() / 256 * 10),
-            'system_volume': \
-            # System value 0-100
-            str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
-        }
+            message = f'No playable items in playlist {int(XOS_PLAYLIST_ID)} '\
+                      f'on mediaplayer {int(XOS_MEDIA_PLAYER_ID)}'
+            media_player_status = {
+                'error': message,
+            }
+        return media_player_status
 
     def post_playback_to_broker(self):  # pylint: disable=R0914
         """
@@ -246,11 +252,14 @@ class MediaPlayer():
 
             except KeyError as error:
                 vlc_connection_attempts += 1
-                if vlc_connection_attempts <= VLC_CONNECTION_RETRIES:
-                    template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
-                    message = template.format(type(error).__name__, error.args)
+                template = 'An exception of type {0} occurred. Arguments:\n{1!r}'
+                message = template.format(type(error).__name__, error.args)
+                if vlc_connection_attempts < VLC_CONNECTION_RETRIES:
                     print(message)
                     print(f'Current vlc_status: {media_player_status}')
+                elif vlc_connection_attempts == VLC_CONNECTION_RETRIES:
+                    print(f'Tried {VLC_CONNECTION_RETRIES} times. '
+                          f'Giving up and posting error to Sentry...')
                     sentry_sdk.capture_exception(error)
 
             except (TimeoutError, ValueError) as error:
@@ -269,8 +278,8 @@ class MediaPlayer():
         Posts to the Balena supervisor to restart the media player service.
         """
         try:
-            balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/\
-                restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
+            balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/'\
+                             f'restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
             json = {
                 'serviceName': BALENA_SERVICE_NAME
             }
@@ -508,8 +517,12 @@ if __name__ == "__main__":
         sync_thread = Thread(target=media_player.sync_to_server)
         sync_thread.start()
 
-    # Wait for VLC to launch
-    time.sleep(5)
-
-    playback_time_thread = Thread(target=media_player.post_playback_to_broker)
-    playback_time_thread.start()
+    if media_player.playlist:
+        # Wait for VLC to launch
+        time.sleep(5)
+        playback_time_thread = Thread(target=media_player.post_playback_to_broker)
+        playback_time_thread.start()
+    else:
+        print('The playlist appears to be empty... not attempting to post playback status.')
+        while True:
+            pass
