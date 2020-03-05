@@ -6,13 +6,6 @@ sed -i 's/geteuid/getppid/' /usr/bin/vlc
 # Remove the X server lock file so ours starts cleanly
 rm /tmp/.X0-lock &>/dev/null || true
 
-# Print all of the current displays used by processes
-echo "Displays being used before starting X11"
-ps -u $(id -u) -o pid= | \
-  while read pid; do
-    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
-  done | sort -u
-
 # Set the display to use
 export DISPLAY=:0
 
@@ -27,14 +20,34 @@ export XDG_RUNTIME_DIR=$PATH:~/.cache/xdgr
 touch /root/.Xauthority
 
 # Start desktop manager
-echo "STARTING X"
-startx -- -nocursor &
+echo "Starting X"
+startx &
 
 # TODO: work out how to detect X has started
 sleep 5
 
+# Print all of the current displays used by running processes
+echo "Displays in use after starting X"
+DISPLAYS=`ps -u $(id -u) -o pid= | \
+  while read pid; do
+    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+  done | sort -u`
+echo $DISPLAYS
+
+# If DISPLAYS doesn't include 0.0 set the new display
+if [[ $DISPLAYS == *"0.0"* ]]; then
+  echo "Display includes 0.0 so let's launch..."
+else
+  LAST_DISPLAY=`ps -u $(id -u) -o pid= | \
+    while read pid; do
+      cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+    done | sort -u | tail -n1`
+  echo "0.0 is missing, so setting display to: ${LAST_DISPLAY}"
+  export $LAST_DISPLAY
+fi
+
 # Hide the cursor
-unclutter -display :0 -idle 0.1 &
+unclutter -idle 0.1 &
 
 # Set X background image
 xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/workspace0/last-image --set /code/resources/blank-1920x1080.png
@@ -47,8 +60,8 @@ xfce4-panel -q
 
 # rotate screen if env variable is set [normal, inverted, left or right]
 if [[ ! -z "$ROTATE_DISPLAY" ]]; then
-  echo "Rotating display..."
-  (sleep 3 && DISPLAY=:0 xrandr -o $ROTATE_DISPLAY) &
+  echo "Rotating display ${ROTATE_DISPLAY}"
+  (sleep 3 && xrandr -o $ROTATE_DISPLAY) &
 fi
 
 # Set display to 4K
@@ -56,25 +69,5 @@ fi
 
 # Unmute system audio
 # ./scripts/unmute.sh
-
-# Print all of the current displays used by processes
-echo "Displays in use before starting Media Player"
-DISPLAYS=`ps -u $(id -u) -o pid= | \
-  while read pid; do
-    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
-  done | sort -u`
-echo $DISPLAYS
-
-# If DISPLAYS doesn't include 0.0 set the new display
-if [[ $DISPLAYS == *"0.0"* ]]; then
-  echo "Display looks good"
-else
-  echo "Settings new display"
-  LAST_DISPLAY=`ps -u $(id -u) -o pid= | \
-    while read pid; do
-      cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
-    done | sort -u | tail -n1`
-  export $LAST_DISPLAY
-fi
 
 python media_player.py
