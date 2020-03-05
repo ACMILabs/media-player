@@ -21,7 +21,7 @@ touch /root/.Xauthority
 
 # Start desktop manager
 echo "Starting X"
-startx &
+startx -- -nocursor &
 
 # TODO: work out how to detect X has started
 sleep 5
@@ -45,6 +45,9 @@ else
   echo "0.0 is missing, so setting display to: ${LAST_DISPLAY}"
   export $LAST_DISPLAY
 fi
+
+# Prevent blanking and screensaver
+xset s off -dpms
 
 # Hide the cursor
 unclutter -idle 0.1 &
