@@ -41,7 +41,6 @@ ENV PYTHONUNBUFFERED 1
 ENV UDEV 1
 
 # Set dbus environment variables
-ENV DISPLAY :0
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 
 # Copy Intel display settings for Dell OptiPlex 3070

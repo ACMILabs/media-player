@@ -3,33 +3,54 @@
 # Allow VLC to run under root
 sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
-export DISPLAY=:0.0
+# Remove the X server lock file so ours starts cleanly
+rm /tmp/.X0-lock &>/dev/null || true
+
+# Set the display to use
+export DISPLAY=:0
+
+# Set the DBUS address for sending around system messages
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
-# rotate screen if env variable is set [normal, inverted, left or right]
-if [[ ! -z "$ROTATE_DISPLAY" ]]; then
-  echo "YES"
-  (sleep 3 && DISPLAY=:0 xrandr -o $ROTATE_DISPLAY) &
-fi
+# Set XDG_RUNTIME_DIR
+mkdir -pv ~/.cache/xdgr
+export XDG_RUNTIME_DIR=$PATH:~/.cache/xdgr
 
-# Set display to 4K
-# xrandr --output HDMI-1 --mode 3840x2160
+# Create Xauthority
+touch /root/.Xauthority
 
-# start desktop manager
-echo "STARTING X"
-startx &
+# Start desktop manager
+echo "Starting X"
+startx -- -nocursor &
 
 # TODO: work out how to detect X has started
 sleep 5
 
-# uncomment to start x without mouse cursor
-# startx -- -nocursor &
+# Print all of the current displays used by running processes
+echo "Displays in use after starting X"
+DISPLAYS=`ps -u $(id -u) -o pid= | \
+  while read pid; do
+    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+  done | sort -u`
+echo $DISPLAYS
 
-# uncomment to open an application instead of the desktop
-# startx xterm 
+# If DISPLAYS doesn't include 0.0 set the new display
+if [[ $DISPLAYS == *"0.0"* ]]; then
+  echo "Display includes 0.0 so let's launch..."
+else
+  LAST_DISPLAY=`ps -u $(id -u) -o pid= | \
+    while read pid; do
+      cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+    done | sort -u | tail -n1`
+  echo "0.0 is missing, so setting display to: ${LAST_DISPLAY}"
+  export $LAST_DISPLAY
+fi
+
+# Prevent blanking and screensaver
+xset s off -dpms
 
 # Hide the cursor
-unclutter -display :0 -idle 0.1 &
+unclutter -idle 0.1 &
 
 # Set X background image
 xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/workspace0/last-image --set /code/resources/blank-1920x1080.png
@@ -39,6 +60,15 @@ xfconf-query -c xfce4-desktop -np '/desktop-icons/style' -t 'int' -s '0'
 
 # Hide X panel
 xfce4-panel -q
+
+# rotate screen if env variable is set [normal, inverted, left or right]
+if [[ ! -z "$ROTATE_DISPLAY" ]]; then
+  echo "Rotating display ${ROTATE_DISPLAY}"
+  (sleep 3 && xrandr -o $ROTATE_DISPLAY) &
+fi
+
+# Set display to 4K
+# xrandr --output HDMI-1 --mode 3840x2160
 
 # Unmute system audio
 # ./scripts/unmute.sh
