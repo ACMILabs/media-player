@@ -39,3 +39,7 @@ steps:
       - balena login --token $BALENA_TOKEN
       - balena push s__media-player-x86
       - balena push s__media-player-pi-4
+    when:
+      branch:
+        only:
+          - master
