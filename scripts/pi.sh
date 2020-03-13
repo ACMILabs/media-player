@@ -26,8 +26,35 @@ startx -- -nocursor &
 # TODO: work out how to detect X has started
 sleep 5
 
+# Print all of the current displays used by running processes
+echo "Displays in use after starting X"
+DISPLAYS=`ps -u $(id -u) -o pid= | \
+  while read pid; do
+    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+  done | sort -u`
+echo $DISPLAYS
+
+# Always set display to last display just to be sure
+LAST_DISPLAY=`ps -u $(id -u) -o pid= | \
+  while read pid; do
+    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+  done | sort -u | tail -n1`
+echo "Setting display to: ${LAST_DISPLAY}"
+export $LAST_DISPLAY
+
 # Hide the cursor
-unclutter -display :0 -idle 0.1 &
+unclutter -idle 0.1 &
+
+# rotate screen if env variable is set [normal, inverted, left or right]
+if [[ ! -z "$ROTATE_DISPLAY" ]]; then
+  echo "Rotating display: ${ROTATE_DISPLAY}"
+  (sleep 3 && xrandr -o $ROTATE_DISPLAY) &
+fi
+
+# Parse screen resolution for smaller screens
+export SCREEN_WIDTH=`xrandr -q | awk -F'current' -F',' 'NR==1 {gsub("( |current)","");print $2}' | cut -d 'x' -f1`
+export SCREEN_HEIGHT=`xrandr -q | awk -F'current' -F',' 'NR==1 {gsub("( |current)","");print $2}' | cut -d 'x' -f2`
+echo "Display resolution: ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
 
 # Unmute system audio
 # ./scripts/unmute.sh
