@@ -39,6 +39,9 @@ RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
 # Enable udevd so that plugged dynamic hardware devices show up in our container.
 ENV UDEV 1
 
+# Set dbus environment variables
+ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
+
 COPY ./requirements/base.txt /code/requirements/base.txt
 COPY ./requirements/prod.txt /code/requirements/prod.txt
 RUN pip3 install -Ur /code/requirements/prod.txt

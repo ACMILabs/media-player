@@ -34,13 +34,16 @@ DISPLAYS=`ps -u $(id -u) -o pid= | \
   done | sort -u`
 echo $DISPLAYS
 
-# Always set display to last display just to be sure
+# Always set display to last display
 LAST_DISPLAY=`ps -u $(id -u) -o pid= | \
   while read pid; do
     cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
   done | sort -u | tail -n1`
 echo "Setting display to: ${LAST_DISPLAY}"
 export $LAST_DISPLAY
+
+# Prevent blanking and screensaver
+xset s off -dpms
 
 # Hide the cursor
 unclutter -idle 0.1 &
