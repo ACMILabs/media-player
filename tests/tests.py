@@ -1,6 +1,9 @@
 import json
 import os
+from shutil import copyfile
 from unittest.mock import MagicMock, patch
+
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from media_player import MediaPlayer
 
@@ -57,6 +60,7 @@ def test_media_player():
 
 
 @patch('requests.get', MagicMock(side_effect=mocked_requests_get))
+@patch('media_player.CACHED_PLAYLIST_JSON', 'test_cached_playlist.json')
 def test_download_playlist_from_xos():
     """
     Test download_playlist_from_xos() returns a valid playlist.
@@ -136,3 +140,56 @@ def test_get_media_player_status():
     assert status['playlist_position'] == 1
     assert status['label_id'] == 456
     assert status_two['label_id'] is None
+
+
+@patch('requests.get', MagicMock(side_effect=mocked_requests_get))
+@patch('media_player.CACHED_PLAYLIST_JSON', 'test_cached_playlist.json')
+def test_cache_playlist():
+    """
+    Test that a downloaded playlist is cached.
+    """
+
+    media_player = MediaPlayer()
+    media_player.download_playlist_from_xos()
+    playlist = media_player.playlist
+
+    with open('test_cached_playlist.json', encoding='utf-8') as json_file:
+        json_data = json.load(json_file)
+        playlist_labels = json_data['playlist_labels']
+
+        expected_resource = os.path.basename(playlist_labels[0]['resource'])
+        resource = os.path.basename(playlist[0]['resource'])
+        assert resource == expected_resource
+
+        subtitles = os.path.basename(playlist[0]['subtitles'])
+        expected_subtitles = os.path.basename(playlist_labels[0]['subtitles'])
+        assert subtitles == expected_subtitles
+
+    os.remove('test_cached_playlist.json')
+
+
+@patch('requests.get', MagicMock(side_effect=RequestsConnectionError()))
+@patch('media_player.CACHED_PLAYLIST_JSON', 'test_cached_playlist.json')
+def test_still_plays_if_cannot_reach_xos():
+    """
+    Test that a playlist is not empty even if XOS is unreachable.
+    """
+    copyfile('tests/data/test_cached_playlist.json', 'test_cached_playlist.json')
+    media_player = MediaPlayer()
+    media_player.download_playlist_from_xos()
+
+    assert len(media_player.playlist) == 9
+
+    os.remove('test_cached_playlist.json')
+
+
+@patch('requests.get', MagicMock(side_effect=RequestsConnectionError()))
+@patch('media_player.CACHED_PLAYLIST_JSON', 'test_cached_playlist.json')
+def test_empty_playlist_if_cannot_reach_xos_and_no_cache():
+    """
+    Test that if XOS is unreachable and there is no cache, the playlist is empty.
+    """
+    media_player = MediaPlayer()
+    media_player.download_playlist_from_xos()
+
+    assert not media_player.playlist
