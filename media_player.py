@@ -315,18 +315,15 @@ class MediaPlayer():
                 resources_from_playlist.append(resource)
             try:
                 subtitles = urlparse(item.get('subtitles')).path.split('/')[-1]
-                print('subtitles', subtitles)
                 _subtitles_filename = os.path.basename(subtitles)
-                print('_subtitles_filename', _subtitles_filename)
                 subtitles_filename = (
                     resource[:resource.rfind('.')]
                     + _subtitles_filename[_subtitles_filename.rfind('.'):]
                 )
-                print('subtitles_filename', subtitles_filename)
             except TypeError:
                 subtitles = None
             if subtitles:
-                resources_from_playlist.append(subtitles)
+                resources_from_playlist.append(subtitles_filename)
 
         unneeded_files = list(set(resources_on_filesystem) - set(resources_from_playlist))
         for item in unneeded_files:
