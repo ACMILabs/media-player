@@ -308,7 +308,6 @@ class MediaPlayer():
         for item in playlist:
             try:
                 resource = urlparse(item.get('resource')).path.split('/')[-1]
-                print(resource)
             except TypeError:
                 resource = None
             if resource:
@@ -395,7 +394,10 @@ class MediaPlayer():
         """
         for _ in range(DOWNLOAD_RETRIES):
             try:
-                local_filename = filename if filename else urlparse(url).path.split('/')[-1]
+                if filename:
+                    local_filename = filename
+                else:
+                    local_filename = urlparse(url).path.split('/')[-1]
 
                 # Make the resources directory if it doesn't exist
                 if not os.path.exists(RESOURCES_PATH):
