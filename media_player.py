@@ -60,7 +60,7 @@ PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=R
 RESOURCES_PATH = '/data/resources/'
 
 # Cached playlist name
-CACHED_PLAYLIST_JSON = 'cached_playlist.json'
+CACHED_PLAYLIST_JSON = '/data/cached_playlist.json'
 
 # Parse the output of `aplay -l`
 APLAY_REGEX = re.compile(r'card (?P<card_id>\d+): (.+), device (?P<device_id>\d+): (.+)')
