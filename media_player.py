@@ -314,10 +314,15 @@ class MediaPlayer():
                 resources_from_playlist.append(resource)
             try:
                 subtitles = urlparse(item.get('subtitles')).path.split('/')[-1]
+                _subtitles_filename = os.path.basename(subtitles)
+                subtitles_filename = (
+                    resource[:resource.rfind('.')]
+                    + _subtitles_filename[_subtitles_filename.rfind('.'):]
+                )
             except TypeError:
                 subtitles = None
             if subtitles:
-                resources_from_playlist.append(subtitles)
+                resources_from_playlist.append(subtitles_filename)
 
         unneeded_files = list(set(resources_on_filesystem) - set(resources_from_playlist))
         for item in unneeded_files:
@@ -353,11 +358,17 @@ class MediaPlayer():
 
         try:
             subtitles_url = playlist_label.get('subtitles')
-            subtitles_filename = os.path.basename(urlparse(subtitles_url).path)
+            # Modify the subtitles filename to match the video filename (for VLC)
+            _subtitles_filename = os.path.basename(urlparse(subtitles_url).path)
+            subtitles_filename = (
+                video_filename[:video_filename.rfind('.')]
+                + _subtitles_filename[_subtitles_filename.rfind('.'):]
+            )
+
             local_subtitles_path = RESOURCES_PATH + subtitles_filename
 
             if subtitles_url and self.resource_needs_downloading(local_subtitles_path):
-                self.download_file(subtitles_url)
+                self.download_file(subtitles_url, subtitles_filename)
 
         except TypeError:
             pass
@@ -377,13 +388,16 @@ class MediaPlayer():
         return None
 
     @staticmethod
-    def download_file(url):
+    def download_file(url, filename=None):
         """
         Downloads the file at the specified URL.
         """
         for _ in range(DOWNLOAD_RETRIES):
             try:
-                local_filename = urlparse(url).path.split('/')[-1]
+                if filename:
+                    local_filename = filename
+                else:
+                    local_filename = urlparse(url).path.split('/')[-1]
 
                 # Make the resources directory if it doesn't exist
                 if not os.path.exists(RESOURCES_PATH):

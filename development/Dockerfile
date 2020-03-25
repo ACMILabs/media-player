@@ -57,4 +57,4 @@ WORKDIR /code/
 
 # main.py will run when container starts up on the device
 CMD ["bash"]
-# CMD ["bash","scripts/pi.sh"]
+#CMD ["bash","scripts/pi.sh"]
