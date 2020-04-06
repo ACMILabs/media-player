@@ -41,6 +41,8 @@ SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false') == 'true'
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
 IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
 DEBUG = os.getenv('DEBUG', 'false') == 'true'
+SCREEN_WIDTH = os.getenv('SCREEN_WIDTH')
+SCREEN_HEIGHT = os.getenv('SCREEN_HEIGHT')
 
 # Setup Sentry
 sentry_sdk.init(SENTRY_ID)
@@ -107,6 +109,12 @@ class MediaPlayer():
         flags.append('--freetype-font=FaktPro')
         flags.append('--freetype-background-opacity=255')
         flags.append('--freetype-background-color=0')
+        if SCREEN_WIDTH and SCREEN_HEIGHT:
+            if DEBUG:
+                print(f'Attempting to set media player screen '
+                      f'resolution to: {SCREEN_WIDTH}x{SCREEN_HEIGHT}')
+            flags.append(f'--width={SCREEN_WIDTH}')
+            flags.append(f'--height={SCREEN_HEIGHT}')
         self.vlc['instance'] = vlc.Instance(flags)
         self.vlc['list_player'] = self.vlc['instance'].media_list_player_new()
         self.vlc['player'] = self.vlc['list_player'].get_media_player()
