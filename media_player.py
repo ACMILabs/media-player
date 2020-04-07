@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import subprocess
@@ -57,6 +58,9 @@ PLAYBACK_QUEUE = Queue(QUEUE_NAME, exchange=MEDIA_PLAYER_EXCHANGE, routing_key=R
 
 # Save resources to a persistent storage location
 RESOURCES_PATH = '/data/resources/'
+
+# Cached playlist name
+CACHED_PLAYLIST_JSON = '/data/cached_playlist.json'
 
 # Parse the output of `aplay -l`
 APLAY_REGEX = re.compile(r'card (?P<card_id>\d+): (.+), device (?P<device_id>\d+): (.+)')
@@ -288,12 +292,15 @@ class MediaPlayer():
         try:
             balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/'\
                              f'restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
-            json = {
+            json_data = {
                 'serviceName': BALENA_SERVICE_NAME
             }
-            response = requests.post(balena_api_url, json=json)
+            response = requests.post(balena_api_url, json=json_data)
             response.raise_for_status()
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as exception:
+        except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError
+        ) as exception:
             message = f'Failed to restart the Media Player container with exception: {exception}'
             print(message)
             sentry_sdk.capture_exception(exception)
@@ -421,7 +428,7 @@ class MediaPlayer():
                 return local_filename
             except (
                     requests.exceptions.HTTPError,
-                    requests.exceptions.ConnectionError,
+                    requests.exceptions.ConnectionError
             ) as exception:
                 message = f'Failed to download the file {local_filename} with error {exception}'
                 print(message)
@@ -433,10 +440,31 @@ class MediaPlayer():
         """
         Downloads the playlist from XOS.
         """
+        playlist_json_data = {}
         try:
-            response = requests.get(XOS_PLAYLIST_ENDPOINT + XOS_PLAYLIST_ID)
+            response = requests.get(XOS_PLAYLIST_ENDPOINT + XOS_PLAYLIST_ID, timeout=5)
             response.raise_for_status()
-            playlist_labels = response.json()['playlist_labels']
+            playlist_json_data = response.json()
+
+        except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout
+        ) as exception:
+            print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT}, looking for local files.')
+            sentry_sdk.capture_exception(exception)
+
+            try:
+                with open(CACHED_PLAYLIST_JSON, encoding='utf-8') as json_file:
+                    playlist_json_data = json.load(json_file)
+            except FileNotFoundError as file_exception:
+                message = 'Cannot reach XOS and local cache does not exist'
+                print(message)
+                sentry_sdk.capture_exception(file_exception)
+                return
+
+        try:
+            playlist_labels = playlist_json_data['playlist_labels']
 
             # Delete unneeded files from the filesystem
             self.delete_unneeded_resources(playlist_labels)
@@ -459,8 +487,16 @@ class MediaPlayer():
 
             self.vlc['list_player'].set_media_list(self.vlc['playlist'])
 
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as exception:
-            print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT} with error: {exception}')
+            # cache playlist
+            with open(CACHED_PLAYLIST_JSON, 'w') as outfile:
+                json.dump(playlist_json_data, outfile)
+
+        except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError
+        ) as exception:
+            print(f'Unable to connect to {XOS_PLAYLIST_ENDPOINT} and \
+                resources not available locally. Error: {exception}')
             sentry_sdk.capture_exception(exception)
 
         except KeyError as exception:

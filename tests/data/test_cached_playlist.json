@@ -1,0 +1,69 @@
+{
+  "id": 6,
+  "title": "Films of Gillian Armstromg",
+  "playlist_labels": [
+      {
+          "label": {
+              "id": 35
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      },
+      {
+          "label": {
+              "id": 31
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      },
+      {
+          "label": {
+              "id": 30
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      },
+      {
+          "label": {
+              "id": 33
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      },
+      {
+          "label": {
+              "id": 29
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      },
+      {
+          "label": {
+              "id": 27
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      },
+      {
+          "label": {
+              "id": 34
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      },
+      {
+          "label": {
+              "id": 28
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      },
+      {
+          "label": {
+              "id": 32
+          },
+          "resource": "file://../../data/resources/sample.mp4",
+          "subtitles": "file://../../data/resources/sample.srt"
+      }
+  ]
+}
