@@ -13,8 +13,6 @@ import requests
 import sentry_sdk
 import vlc
 from kombu import Connection, Exchange, Queue
-from requests.exceptions import ConnectionError as RequestsConnectionError
-from requests.exceptions import HTTPError, Timeout
 
 import network
 import status_client
@@ -291,7 +289,10 @@ class MediaPlayer():
             }
             response = requests.post(balena_api_url, json=json_data)
             response.raise_for_status()
-        except (HTTPError, RequestsConnectionError) as exception:
+        except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError
+        ) as exception:
             message = f'Failed to restart the Media Player container with exception: {exception}'
             print(message)
             sentry_sdk.capture_exception(exception)
@@ -403,7 +404,10 @@ class MediaPlayer():
                                 open_file.write(chunk)
                                 # open_file.flush()
                 return local_filename
-            except (HTTPError, RequestsConnectionError) as exception:
+            except (
+                    requests.exceptions.HTTPError,
+                    requests.exceptions.ConnectionError
+            ) as exception:
                 message = f'Failed to download the file {local_filename} with error {exception}'
                 print(message)
                 sentry_sdk.capture_exception(exception)
@@ -420,7 +424,11 @@ class MediaPlayer():
             response.raise_for_status()
             playlist_json_data = response.json()
 
-        except (HTTPError, RequestsConnectionError, Timeout) as exception:
+        except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout
+        ) as exception:
             print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT}, looking for local files.')
 
             try:
@@ -461,7 +469,10 @@ class MediaPlayer():
             with open(CACHED_PLAYLIST_JSON, 'w') as outfile:
                 json.dump(playlist_json_data, outfile)
 
-        except (HTTPError, RequestsConnectionError) as exception:
+        except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError
+        ) as exception:
             print(f'Unable to connect to {XOS_PLAYLIST_ENDPOINT} and \
                 resources not available locally. Error: {exception}')
             sentry_sdk.capture_exception(exception)

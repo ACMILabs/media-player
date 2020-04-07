@@ -3,7 +3,7 @@ import os
 from shutil import copyfile
 from unittest.mock import MagicMock, patch
 
-from requests.exceptions import ConnectionError as RequestsConnectionError
+import requests
 
 from media_player import MediaPlayer
 
@@ -168,7 +168,7 @@ def test_cache_playlist():
     os.remove('test_cached_playlist.json')
 
 
-@patch('requests.get', MagicMock(side_effect=RequestsConnectionError()))
+@patch('requests.get', MagicMock(side_effect=requests.exceptions.ConnectionError()))
 @patch('media_player.CACHED_PLAYLIST_JSON', 'test_cached_playlist.json')
 def test_still_plays_if_cannot_reach_xos():
     """
@@ -183,7 +183,7 @@ def test_still_plays_if_cannot_reach_xos():
     os.remove('test_cached_playlist.json')
 
 
-@patch('requests.get', MagicMock(side_effect=RequestsConnectionError()))
+@patch('requests.get', MagicMock(side_effect=requests.exceptions.ConnectionError()))
 @patch('media_player.CACHED_PLAYLIST_JSON', 'test_cached_playlist.json')
 def test_empty_playlist_if_cannot_reach_xos_and_no_cache():
     """
