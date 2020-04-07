@@ -430,6 +430,7 @@ class MediaPlayer():
                 requests.exceptions.Timeout
         ) as exception:
             print(f'Failed to connect to {XOS_PLAYLIST_ENDPOINT}, looking for local files.')
+            sentry_sdk.capture_exception(exception)
 
             try:
                 with open(CACHED_PLAYLIST_JSON, encoding='utf-8') as json_file:
@@ -437,7 +438,6 @@ class MediaPlayer():
             except FileNotFoundError as file_exception:
                 message = 'Cannot reach XOS and local cache does not exist'
                 print(message)
-                sentry_sdk.capture_exception(exception)
                 sentry_sdk.capture_exception(file_exception)
                 return
 
