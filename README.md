@@ -3,15 +3,68 @@ Media player
 
 A media player using Python to launch VLC.
 
-Features:
-* Downloads a playlist of videos (with optional subtitles) from XOS
-* Posts playback & volume information to a broker
+####Features:
+* Shows a black background if no videos are found
+* Downloads a playlist of videos (with optional subtitles) from XOS and saves these locally so that playback can take place after reboot without an internet connection
+* Posts playback & volume information to a broker (see [Message Broker](#message-broker))
+* Synchronises playback with additional media players if configured (See Synchronised playback)
 
-Monitoring:
-* Includes a Prometheus client exporting playback & volume information
+####Configuration
+The media player expects the following configuration variables:
 
-Error reporting:
+```
+AMQP_URL
+DOWNLOAD_RETRIES
+SENTRY_ID
+TIME_BETWEEN_PLAYBACK_STATUS
+TIME_BETWEEN_READINGS
+USE_PLS_PLAYLIST
+VLC_PASSWORD
+VLC_URL
+XOS_API_ENDPOINT
+XOS_MEDIA_PLAYER_ID
+XOS_PLAYLIST_ID
+AUDIO_DEVICE_REGEX
+SYNC_CLIENT_T0
+SYNC_IS_SERVER
+```
+
+
+####Endpoints
+The media player makes a get request to a playlist endpoint and expects a response with the following shape:
+```.env
+{
+    "id": 1,
+    "title": "Default playlist",
+    "playlist_labels": [
+        {
+            "label": {
+                "id": 44,
+                "works": [
+                    60889
+                ],
+                "work": {
+                    "id": 60889,
+                },
+            },
+            "resource": "MP4_VIDEO_FILE_URL",
+            "subtitles": "SRT_SUBTITLE_FILE_URL",
+        },
+    ],
+}
+
+```
+
+
+####Monitoring:
+Includes a Prometheus client which exports scrapable data at the following ports: 
+* playback & volume information at port `1007`
+* Balena node exporter at port `1005`
+
+####Error reporting:
 * Posts exceptions and errors to Sentry
+
+
 
 ## Troubleshooting
 
@@ -90,9 +143,13 @@ start "" "%SYSTEMDRIVE%\Program Files\Git\bin\sh.exe" --login -i -c "source conf
 * In the Run dialog type: `shell:startup`
 * Cut and paste the shortcut into this folder.
 
-## Setup RabbitMQ user
+##Message Broker
 
-There's a demo RabbitMQ server setup on our Ubuntu Server. It's setup to start the `rabbitmq-server` service at boot. I used this command to do that: `sudo update-rc.d rabbitmq-server defaults`, but to manually start/stop the server use: `sudo service rabbitmq-server stop/start/restart`
+The media player sends playback information to a RabbitMQ server. This playback information is then consumed by a Playlist Label using an AMQP consumer.
+
+###Setting up a RabbitMQ server and user
+
+A RabbitMQ server can be run on a Ubuntu Server and setup to start the `rabbitmq-server` service at boot with this command: `sudo update-rc.d rabbitmq-server defaults`, but to manually start/stop the server use: `sudo service rabbitmq-server stop/start/restart`
 
 To setup a user:
 
@@ -102,8 +159,5 @@ To setup a user:
 
 The address of the AMQP service is then: `amqp://username:password@172.16.80.105:5672//`
 
-## Sample AMQP consumer
-
-There's a sample consumer to see the output from the `mewdia_player.py` vlc http server, run it with: `python consumer.py`.
-
-You'll need to have the config variables loaded: `source config.env`
+##Synchronised Playback
+Several media players may be configured to play video files of the exact same length in synchronised time with each other. This is done be setting one media player to be the 'synchronisation server', by setting the config variable `SYNC_IS_SERVER` to True. The remaining media players should be set to track the server by setting the config variable `SYNC_CLIENT_TO` to the IP address of the synchronisation server. 
