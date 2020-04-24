@@ -4,6 +4,10 @@ Media player
 A media player using Python to launch VLC.
 
 #### Features:
+* Plays the downloaded playlist fullscreen in an endless loop through the first HDMI output
+* Supports content playable by VLC on the given hardware
+* Outputs audio through the first audio device with a name that matches the AUDIO_DEVICE_REGEX environment variable
+* Displays captions using VLC
 * Shows a black background if no videos are found
 * Downloads a playlist of videos (with optional subtitles) from XOS and saves these locally so that playback can take place after reboot without an internet connection
 * Posts playback & volume information to a broker (see [Message Broker](#message-broker))
@@ -17,35 +21,34 @@ AMQP_URL
 DOWNLOAD_RETRIES
 SENTRY_ID
 TIME_BETWEEN_PLAYBACK_STATUS
-TIME_BETWEEN_READINGS
-USE_PLS_PLAYLIST
-VLC_PASSWORD
-VLC_URL
 XOS_API_ENDPOINT
 XOS_MEDIA_PLAYER_ID
 XOS_PLAYLIST_ID
 AUDIO_DEVICE_REGEX
-SYNC_CLIENT_T0
+SYNC_CLIENT_TO
 SYNC_IS_SERVER
 ```
 
+Optional variables:
+
+```.env
+SYNC_DRIFT_THRESHOLD # Defaults to 40. (milliseconds)
+SUBTITLES # Set to true will display subtitles
+SUBTITLES_FONT_SIZE # Set a subtitle size value of 0-4096
+SUBTITLES_FONT_WEIGHT # Set the font weight to regular or bold
+DEBUG # Set to true to see more output on the console
+
+```
 
 #### Endpoints
 The media player makes a get request to a playlist endpoint and expects a response with the following shape:
-```.env
+```bash
 {
     "id": 1,
-    "title": "Default playlist",
     "playlist_labels": [
         {
             "label": {
                 "id": 44,
-                "works": [
-                    60889
-                ],
-                "work": {
-                    "id": 60889,
-                },
             },
             "resource": "MP4_VIDEO_FILE_URL",
             "subtitles": "SRT_SUBTITLE_FILE_URL",
@@ -59,7 +62,6 @@ The media player makes a get request to a playlist endpoint and expects a respon
 #### Monitoring:
 Includes a Prometheus client which exports scrapable data at the following ports: 
 * playback & volume information at port `1007`
-* Balena node exporter at port `1005`
 
 #### Error reporting:
 * Posts exceptions and errors to Sentry
@@ -146,6 +148,23 @@ start "" "%SYSTEMDRIVE%\Program Files\Git\bin\sh.exe" --login -i -c "source conf
 ## Message Broker
 
 The media player sends playback information to a RabbitMQ server. This playback information is then consumed by a Playlist Label using an AMQP consumer.
+
+The message broker post has this shape:
+```bash
+{
+  "datetime": "2020-04-23T10:12:30.537576+10:00",
+  "playlist_id": 9,
+  "media_player_id": 80,
+  "label_id": 40,
+  "playlist_position": 3,
+  "playback_position": 0.5821805000305176,
+  "dropped_audio_frames": 0,
+  "dropped_video_frames": 0,
+  "duration": 100229,
+  "player_volume": "3.90625",
+  "system_volume": "9.6"
+}
+```
 
 ### Setting up a RabbitMQ server and user
 
