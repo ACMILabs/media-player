@@ -3,15 +3,70 @@ Media player
 
 A media player using Python to launch VLC.
 
-Features:
-* Downloads a playlist of videos (with optional subtitles) from XOS
-* Posts playback & volume information to a broker
+#### Features:
+* Plays the downloaded playlist fullscreen in an endless loop through the first HDMI output
+* Supports content playable by VLC on the given hardware
+* Outputs audio through the first audio device with a name that matches the AUDIO_DEVICE_REGEX environment variable
+* Displays captions using VLC
+* Shows a black background if no videos are found
+* Downloads a playlist of videos (with optional subtitles) from XOS and saves these locally so that playback can take place after reboot without an internet connection
+* Posts playback & volume information to a broker (see [Message Broker](#message-broker))
+* Synchronises playback with additional media players if configured (See Synchronised playback)
 
-Monitoring:
-* Includes a Prometheus client exporting playback & volume information
+#### Configuration
+The media player expects the following configuration variables:
 
-Error reporting:
+```
+AMQP_URL
+DOWNLOAD_RETRIES
+SENTRY_ID
+TIME_BETWEEN_PLAYBACK_STATUS
+XOS_API_ENDPOINT
+XOS_MEDIA_PLAYER_ID
+XOS_PLAYLIST_ID
+AUDIO_DEVICE_REGEX
+SYNC_CLIENT_TO
+SYNC_IS_SERVER
+```
+
+Optional variables:
+
+```.env
+SYNC_DRIFT_THRESHOLD # Defaults to 40. (milliseconds)
+SUBTITLES # Set to true will display subtitles
+SUBTITLES_FONT_SIZE # Set a subtitle size value of 0-4096
+SUBTITLES_FONT_WEIGHT # Set the font weight to regular or bold
+DEBUG # Set to true to see more output on the console
+
+```
+
+#### Endpoints
+The media player makes a get request to a playlist endpoint and expects a response with the following shape:
+```bash
+{
+    "id": 1,
+    "playlist_labels": [
+        {
+            "label": {
+                "id": 44,
+            },
+            "resource": "MP4_VIDEO_FILE_URL",
+            "subtitles": "SRT_SUBTITLE_FILE_URL",
+        },
+    ],
+}
+
+```
+
+
+#### Monitoring:
+Includes a Prometheus client which exports scrapable data at the following ports: 
+* playback & volume information at port `1007`
+
+#### Error reporting:
 * Posts exceptions and errors to Sentry
+
+
 
 ## Troubleshooting
 
@@ -90,9 +145,30 @@ start "" "%SYSTEMDRIVE%\Program Files\Git\bin\sh.exe" --login -i -c "source conf
 * In the Run dialog type: `shell:startup`
 * Cut and paste the shortcut into this folder.
 
-## Setup RabbitMQ user
+## Message Broker
 
-There's a demo RabbitMQ server setup on our Ubuntu Server. It's setup to start the `rabbitmq-server` service at boot. I used this command to do that: `sudo update-rc.d rabbitmq-server defaults`, but to manually start/stop the server use: `sudo service rabbitmq-server stop/start/restart`
+The media player sends playback information to a RabbitMQ server. This playback information is then consumed by a Playlist Label using an AMQP consumer.
+
+The message broker post has this shape:
+```bash
+{
+  "datetime": "2020-04-23T10:12:30.537576+10:00",
+  "playlist_id": 9,
+  "media_player_id": 80,
+  "label_id": 40,
+  "playlist_position": 3,
+  "playback_position": 0.5821805000305176,
+  "dropped_audio_frames": 0,
+  "dropped_video_frames": 0,
+  "duration": 100229,
+  "player_volume": "3.90625",
+  "system_volume": "9.6"
+}
+```
+
+### Setting up a RabbitMQ server and user
+
+A RabbitMQ server can be run on a Ubuntu Server and setup to start the `rabbitmq-server` service at boot with this command: `sudo update-rc.d rabbitmq-server defaults`, but to manually start/stop the server use: `sudo service rabbitmq-server stop/start/restart`
 
 To setup a user:
 
@@ -102,8 +178,5 @@ To setup a user:
 
 The address of the AMQP service is then: `amqp://username:password@172.16.80.105:5672//`
 
-## Sample AMQP consumer
-
-There's a sample consumer to see the output from the `mewdia_player.py` vlc http server, run it with: `python consumer.py`.
-
-You'll need to have the config variables loaded: `source config.env`
+## Synchronised Playback
+Several media players may be configured to play video files of the exact same length in synchronised time with each other. This is done be setting one media player to be the 'synchronisation server', by setting the config variable `SYNC_IS_SERVER` to True. The remaining media players should be set to track the server by setting the config variable `SYNC_CLIENT_TO` to the IP address of the synchronisation server. 
