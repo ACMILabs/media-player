@@ -12,6 +12,32 @@ A media player using Python to launch VLC.
 * Downloads a playlist of videos (with optional subtitles) from XOS and saves these locally so that playback can take place after reboot without an internet connection
 * Posts playback & volume information to a broker (see [Message Broker](#message-broker))
 * Synchronises playback with additional media players if configured (See Synchronised playback)
+* Communicates over Ethernet (Wifi configuration and control is not yet tested)
+
+### Hardware
+The media player is designed to run on the following hardware:
+
+#### Raspberry Pi 4
+ACMI uses Rapberry Pis for most standard players in its exhibitions. This will output 1080p video to most screens, and in future should be able to play 4k video.
+
+##### Sample kit list:
+* Raspberry Pi 4, Model B, 2GB
+* Official USB C Power supply
+* Mini-HDMI to HDMI cable
+* Sandisk 16GB SD Card
+* Network cable
+* Screen for display (we like Panasonic professional screens)
+* For audio, we use an Audinate Dante USB dongle
+* For temperature monitoring, we use a DFRobot DHT22 Sensor
+
+#### Small-form-factor PC
+We use small-form-factor PCs such as Dell Optiplex Micro or Intel NUC in places where we need 4k video or synced video.
+
+##### Sample kit list:
+* Dell Optiplex 3070 Micro i3, minimum RAM and storage
+* Screen for display
+* Network cable
+* For audio, we use an Audinate Dante USB dongle
 
 #### Configuration
 The media player expects the following configuration variables:
