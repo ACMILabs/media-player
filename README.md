@@ -10,7 +10,7 @@ A media player using Python to launch VLC.
 * Displays captions using VLC
 * Shows a black background if no videos are found
 * Downloads a playlist of videos (with optional subtitles) from XOS and saves these locally so that playback can take place after reboot without an internet connection
-* Posts playback & volume information to a broker (see [Message Broker](#message-broker))
+* Posts playback & volume information to a broker (see [Message Broker](#message-broker)) to allow integration with synchronised systems
 * Synchronises playback with additional media players if configured (See Synchronised playback)
 * Communicates over Ethernet (Wifi configuration and control is not yet tested)
 
