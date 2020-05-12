@@ -1,18 +1,27 @@
 Media player
 ============
 
-A media player using Python to launch VLC.
+A media player using Python to launch and control VLC on low-cost hardware.
 
-#### Features:
-* Plays the downloaded playlist fullscreen in an endless loop through the first HDMI output
-* Supports content playable by VLC on the given hardware
-* Outputs audio through the first audio device with a name that matches the AUDIO_DEVICE_REGEX environment variable
-* Displays captions using VLC
-* Shows a black background if no videos are found
+## Features:
+* Runs on Raspberry Pi 4 and Intel small-form-factor PCs.
 * Downloads a playlist of videos (with optional subtitles) from XOS and saves these locally so that playback can take place after reboot without an internet connection
+* Plays the downloaded playlist fullscreen in an endless loop through the first HDMI output
+* Supports content and captions playable by VLC on the given hardware
 * Posts playback & volume information to a broker (see [Message Broker](#message-broker)) to allow integration with synchronised systems
 * Synchronises playback with additional media players if configured (See Synchronised playback)
 * Communicates over Ethernet (Wifi configuration and control is not yet tested)
+* Deployable and configurable at scale via Docker and Balena
+* Communicates with Nodel and Prometheus for status/availability/resource monitoring.
+* Outputs audio through the first audio device with a name that matches the AUDIO_DEVICE_REGEX environment variable
+* Shows a black background if no videos are found
+
+### Target video specs
+* H264 now - but we hope to enable H265 in future
+* 1080p or less in most instances, but 4k in exceptional instances
+* 25-30fps almost entirely but up to 60fps in exceptional instances
+* mp4 container
+* Downloaded and cached, rather than streamed over the network
 
 ### Hardware
 The media player is designed to run on the following hardware:
