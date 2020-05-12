@@ -23,13 +23,13 @@ A media player using Python to launch and control VLC on low-cost hardware.
 * mp4 container
 * Downloaded and cached, rather than streamed over the network
 
-### Hardware
+## Hardware
 The media player is designed to run on the following hardware:
 
-#### Raspberry Pi 4
+### Raspberry Pi 4
 ACMI uses Rapberry Pis for most standard players in its exhibitions. This will output 1080p video to most screens, and in future should be able to play 4k video.
 
-##### Sample kit list:
+#### Sample kit list:
 * Raspberry Pi 4, Model B, 2GB
 * Official USB C Power supply
 * Mini-HDMI to HDMI cable
@@ -39,16 +39,30 @@ ACMI uses Rapberry Pis for most standard players in its exhibitions. This will o
 * For audio, we use an Audinate Dante USB dongle
 * For temperature monitoring, we use a DFRobot DHT22 Sensor
 
-#### Small-form-factor PC
+### Small-form-factor PC
 We use small-form-factor PCs such as Dell Optiplex Micro or Intel NUC in places where we need 4k video or synced video.
 
-##### Sample kit list:
+#### Sample kit list:
 * Dell Optiplex 3070 Micro i3, minimum RAM and storage
 * Screen for display
 * Network cable
 * For audio, we use an Audinate Dante USB dongle
 
-#### Configuration
+## Installation on developer machine
+
+* Clone this repository.
+
+* `$ cd development`
+* Build the development container `$ docker-compose up`
+* `cp dev.tmpl.env dev.env`
+* Edit the `dev.env` with any required values (a default playlist will be used otherwise)
+* Run `cd development && docker-compose up`
+
+## Testing and linting
+
+`$ docker exec -it mediaplayer make linttest`
+
+## Configuration
 The media player expects the following configuration variables:
 
 ```
@@ -75,7 +89,7 @@ DEBUG # Set to true to see more output on the console
 
 ```
 
-#### Endpoints
+### Endpoints
 The media player makes a get request to a playlist endpoint and expects a response with the following shape:
 ```bash
 {
@@ -93,14 +107,12 @@ The media player makes a get request to a playlist endpoint and expects a respon
 
 ```
 
-
-#### Monitoring:
+### Monitoring:
 Includes a Prometheus client which exports scrapable data at the following ports: 
 * playback & volume information at port `1007`
 
-#### Error reporting:
+### Error reporting:
 * Posts exceptions and errors to Sentry
-
 
 
 ## Troubleshooting
@@ -130,55 +142,6 @@ $ git remote set-url balena --push --add <username>@git.balena-cloud.com:<userna
 
 $ git remote set-url balena --push --add <username>@git.balena-cloud.com:<username>/<x86 balena app name>.git
 ```
-
-## Installation on developer machine
-
-* Clone this repository.
-
-* `$ cd development`
-* Build the development container `$ docker-compose up`
-* `cp dev.tmpl.env dev.env`
-* Edit the `dev.env` with any required values (a default playlist will be used otherwise)
-* Run `cd development && docker-compose up`
-
-## Testing and linting
-
-`$ docker exec -it mediaplayer make linttest`
-
-
-## Installation on Windows
-
-(These instructions are provided for Legacy purposes - we've switched to Balena-only deployment)
-
-* Install [Git for Windows](https://git-scm.com/download/win).
-* In an admin PowerShell:
-  * Install [Chocolatey](https://chocolatey.org) package manager.
-  * Install VLC `choco install vlc`
-  * Install Python3 `choco install python`
-* In Git Bash shell:
-  * Clone this repository.
-  * `pip install -r requirements.txt`
-  * `mv config.tmpl.env config.env`
-  * Create a Playlist in XOS with resources.
-  * Edit the `config.env` to point to the ID of your Playlist in Django.
-  * Run `source config.env` to load environment variables.
-  * Turn on the http server: VLC > Preferences > http web interface > tick the box & set the password you saved to `config.env`.
-  * Run `python media_player.py`
-
-### To make this autorun at startup:
-
-* Create a batch file called `media-player.bat` which is a text file that includes:
-
-```batch
-C:
-cd /Users/<username>/media-player-nuc
-start "" "%SYSTEMDRIVE%\Program Files\Git\bin\sh.exe" --login -i -c "source config.env && python media_player.py"
-```
-
-* Right click on the batch file and create a shortcut.
-* Press the Windows button and type Run.
-* In the Run dialog type: `shell:startup`
-* Cut and paste the shortcut into this folder.
 
 ## Message Broker
 
