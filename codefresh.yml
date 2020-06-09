@@ -16,7 +16,7 @@ steps:
     title: Building Docker Image
     type: build
     stage: package
-    image_name: mediaplayer
+    image_name: acmilabs/media-player
     working_directory: ./
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
     dockerfile: ./development/Dockerfile.raspberrypi4-64
