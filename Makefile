@@ -13,5 +13,5 @@ lint:
 	isort -rc --check-only .
 test:
 	# Run tests
-	pytest -v
+	pytest -v -s
 linttest: lint test
