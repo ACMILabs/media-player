@@ -67,7 +67,7 @@ if [[ ! -z "$ROTATE_DISPLAY" ]]; then
   (sleep 3 && xrandr -o $ROTATE_DISPLAY) &
 fi
 
-# Set display size and frames-per-second
+# Set display size and frames-per-second refresh rate
 # Note: SCREEN_WIDTH and SCREEN_HEIGHT also tell VLC to play the video at that size too
 if [[ ! -z "$SCREEN_WIDTH" ]] && [[ ! -z "$SCREEN_HEIGHT" ]] && [[ ! -z "$FRAMES_PER_SECOND" ]]; then
   echo "Setting screen to: ${SCREEN_WIDTH}x${SCREEN_HEIGHT} @${FRAMES_PER_SECOND}"

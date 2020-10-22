@@ -54,10 +54,18 @@ if [[ ! -z "$ROTATE_DISPLAY" ]]; then
   (sleep 3 && xrandr -o $ROTATE_DISPLAY) &
 fi
 
-# Parse screen resolution for smaller screens
-export SCREEN_WIDTH=`xrandr -q | awk -F'current' -F',' 'NR==1 {gsub("( |current)","");print $2}' | cut -d 'x' -f1`
-export SCREEN_HEIGHT=`xrandr -q | awk -F'current' -F',' 'NR==1 {gsub("( |current)","");print $2}' | cut -d 'x' -f2`
-echo "Display resolution: ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
+# Set or parse screen resolution
+if [[ ! -z "$SCREEN_WIDTH" ]] && [[ ! -z "$SCREEN_HEIGHT" ]] && [[ ! -z "$FRAMES_PER_SECOND" ]]; then
+  echo "Setting screen to: ${SCREEN_WIDTH}x${SCREEN_HEIGHT} @${FRAMES_PER_SECOND}"
+  xrandr -s "$SCREEN_WIDTH"x"$SCREEN_HEIGHT" -r $FRAMES_PER_SECOND
+elif [[ ! -z "$SCREEN_WIDTH" ]] && [[ ! -z "$SCREEN_HEIGHT" ]]; then
+  echo "Setting screen to: ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
+  xrandr -s "$SCREEN_WIDTH"x"$SCREEN_HEIGHT"
+else
+  export SCREEN_WIDTH=`xrandr -q | awk -F'current' -F',' 'NR==1 {gsub("( |current)","");print $2}' | cut -d 'x' -f1`
+  export SCREEN_HEIGHT=`xrandr -q | awk -F'current' -F',' 'NR==1 {gsub("( |current)","");print $2}' | cut -d 'x' -f2`
+  echo "Screen resolution parsed as: ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
+fi
 
 # Unmute system audio
 # ./scripts/unmute.sh
