@@ -67,8 +67,15 @@ if [[ ! -z "$ROTATE_DISPLAY" ]]; then
   (sleep 3 && xrandr -o $ROTATE_DISPLAY) &
 fi
 
-# Set display to 4K
-# xrandr --output HDMI-1 --mode 3840x2160
+# Set display size and frames-per-second
+# Note: SCREEN_WIDTH and SCREEN_HEIGHT also tell VLC to play the video at that size too
+if [[ ! -z "$SCREEN_WIDTH" ]] && [[ ! -z "$SCREEN_HEIGHT" ]] && [[ ! -z "$FRAMES_PER_SECOND" ]]; then
+  echo "Setting screen to: ${SCREEN_WIDTH}x${SCREEN_HEIGHT} @${FRAMES_PER_SECOND}"
+  xrandr -s "$SCREEN_WIDTH"x"$SCREEN_HEIGHT" -r $FRAMES_PER_SECOND
+elif [[ ! -z "$SCREEN_WIDTH" ]] && [[ ! -z "$SCREEN_HEIGHT" ]]; then
+  echo "Setting screen to: ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
+  xrandr -s "$SCREEN_WIDTH"x"$SCREEN_HEIGHT"
+fi
 
 # Unmute system audio
 # ./scripts/unmute.sh
