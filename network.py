@@ -79,6 +79,9 @@ class Client:  # pylint: disable=R0903
             except ConnectionRefusedError:
                 logger.info("Waiting for server at %s port %s", address, port)
                 time.sleep(1)
+            except OSError:
+                logger.info("Can't connect to %s port %s... retrying in 1 minute", address, port)
+                time.sleep(60)
 
     def receive(self):
         """
