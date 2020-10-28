@@ -86,7 +86,9 @@ SUBTITLES # Set to true will display subtitles
 SUBTITLES_FONT_SIZE # Set a subtitle size value of 0-4096
 SUBTITLES_FONT_WEIGHT # Set the font weight to regular or bold
 DEBUG # Set to true to see more output on the console
-
+SCREEN_WIDTH # Set the screen width
+SCREEN_HEIGHT # Set the screen height
+FRAMES_PER_SECOND # Set the screen refresh rate
 ```
 
 ### Endpoints
