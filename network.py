@@ -2,18 +2,9 @@
 Based on: https://github.com/oaubert/python-vlc/tree/master/examples/video_sync
 """
 
-import logging
 import socket
 import threading
 import time
-
-logger = logging.getLogger(__name__)  # pylint: disable=C0103
-ch = logging.StreamHandler()  # pylint: disable=C0103
-ch.setLevel(logging.DEBUG)
-ch.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-)
-logger.addHandler(ch)
 
 
 class Server:
@@ -25,7 +16,7 @@ class Server:
     def __init__(self, host, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        logger.info("Server started on %s port %s", host, port)
+        print(f'Server started on {host} port {port}')
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((host, port))
 
@@ -42,7 +33,7 @@ class Server:
         """
         while True:
             client, _ = self.sock.accept()
-            logger.info("Accepted Connection from: %s", client)
+            print(f'Accepted Connection from: {client}')
             self.clients.add(client)
 
     def send(self, data):
@@ -55,7 +46,7 @@ class Server:
             try:
                 client.send(data)
             except socket.error:
-                logger.exception("Connection to client: %s was broken!", client)
+                print(f'Connection to client: {client} was broken!')
                 client.close()
                 self.clients.remove(client)
 
@@ -70,15 +61,18 @@ class Client:  # pylint: disable=R0903
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        logger.info("Connecting to %s port %s", address, port)
+        print(f'Connecting to {address} port {port}')
         connected = False
         while not connected:
             try:
                 self.sock.connect((address, port))
                 connected = True
             except ConnectionRefusedError:
-                logger.info("Waiting for server at %s port %s", address, port)
+                print(f'Waiting for server at {address} port {port}')
                 time.sleep(1)
+            except OSError:
+                print(f'Can\'t connect to {address} port {port}... retrying in 1 minute')
+                time.sleep(60)
 
     def receive(self):
         """
@@ -93,6 +87,6 @@ class Client:  # pylint: disable=R0903
                 return int(pos)
             return None
         except OSError:
-            logger.exception("Closing socket: %s", self.sock)
+            print(f'Closing socket: {self.sock}')
             self.sock.close()
             return None
