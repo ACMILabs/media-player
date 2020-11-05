@@ -25,7 +25,36 @@ RUN install_packages \
   # Intel GPU drivers for VLC
   i965-va-driver \
   vainfo \
-  vdpau-va-driver
+  vdpau-va-driver \
+  # To build kernel module for Dante
+  curl \
+  wget \
+  build-essential \
+  libelf-dev \
+  awscli \
+  bc \
+  flex \
+  libssl-dev \
+  python \
+  bison \
+  git
+
+# Build kernel module for Dante
+ENV VERSION '2.47.0+rev1.prod 2.50.4+rev1.prod'
+# RUN BALENA_MACHINE_NAME=%%BALENA_MACHINE_NAME%% ./scripts/build.sh build --device %%BALENA_MACHINE_NAME%% --os-version "$VERSION" --src dante
+
+# From: https://forums.balena.io/t/nvidia-drivers-on-intel-nuc/2903 and https://bitbucket.org/MergingTechnologies/ravenna-alsa-lkm/src/master/
+# ENV RESINOS_VERSION=2.50.1%2Brev1.prod
+# ENV YOCTO_VERSION=5.2.10
+# RUN wget https://files.resin.io/images/intel-nuc/${RESINOS_VERSION}/kernel_modules_headers.tar.gz
+# RUN tar -xf kernel_modules_headers.tar.gz && rm -rf kernel_modules_headers.tar.gz
+# RUN mkdir -p /lib/modules/${YOCTO_VERSION}-yocto-standard
+# RUN mv ./kernel_modules_headers /lib/modules/${YOCTO_VERSION}-yocto-standard/build
+# RUN ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
+# RUN git clone https://github.com/ACMILabs/alsa-ravenna-lkm.git
+# RUN cd alsa-ravenna-lkm/driver && make && sudo cp MergingRavennaALSA.ko /lib/modules/$(uname -r)/kernel/drivers && sudo cp MergingRavennaALSA.ko /lib/modules/${YOCTO_VERSION}-yocto-standard/kernel/drivers
+# RUN depmod
+# RUN sudo insmod MergingRavennaALSA.ko
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
