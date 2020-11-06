@@ -8,6 +8,7 @@ from threading import Thread
 from urllib.parse import urlparse
 
 import alsaaudio
+import hashlib
 import pytz
 import requests
 import sentry_sdk
@@ -401,6 +402,33 @@ class MediaPlayer():
 
             return item_dictionary
         return None
+
+    def md5_checksums_match(self, local_file, remote_file):
+        """
+        Returns True if the checksums of a local file and a remote file match.
+        """
+        return self.md5_checksum(local_file, None) == self.md5_checksum(None, remote_file)
+
+    @staticmethod
+    def md5_checksum(local_file_path, url):
+        """
+        Returns an md5 checksum for a local file or remote file.
+        """
+        md5 = hashlib.md5()
+        if not url:
+            with open(local_file_path, 'rb') as file:
+                md5 = hashlib.md5()
+                while True:
+                    data = file.read(8192)
+                    if not data:
+                        break
+                    md5.update(data)
+                return md5.hexdigest()
+        else:
+            response = requests.get(url)
+            for data in response.iter_content(8192):
+                md5.update(data)
+            return md5.hexdigest()
 
     @staticmethod
     def download_file(url, filename=None):
