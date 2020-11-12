@@ -203,6 +203,10 @@ class MediaPlayer():
             except TypeError:
                 # No label ID for this playlist item
                 label_id = None
+            try:
+                system_volume = str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10)
+            except alsaaudio.ALSAAudioError:
+                system_volume = None
             media_player_status = {
                 'datetime': self.datetime_now(),
                 'playlist_id': int(XOS_PLAYLIST_ID),
@@ -218,7 +222,7 @@ class MediaPlayer():
                 str(self.vlc['player'].audio_get_volume() / 256 * 10),
                 'system_volume': \
                 # System value 0-100
-                str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10),
+                system_volume,
             }
         else:
             # playlist is empty
