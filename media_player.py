@@ -206,7 +206,7 @@ class MediaPlayer():
             try:
                 system_volume = str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10)
             except alsaaudio.ALSAAudioError:
-                system_volume = None
+                system_volume = 0
             media_player_status = {
                 'datetime': self.datetime_now(),
                 'playlist_id': int(XOS_PLAYLIST_ID),
