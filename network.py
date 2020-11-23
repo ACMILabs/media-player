@@ -71,8 +71,8 @@ class Client:  # pylint: disable=R0903
                 print(f'Waiting for server at {address} port {port}')
                 time.sleep(1)
             except OSError:
-                print(f'Can\'t connect to {address} port {port}... retrying in 1 minute')
-                time.sleep(60)
+                print(f'Can\'t connect to {address} port {port}')
+                time.sleep(1)
 
     def receive(self):
         """
