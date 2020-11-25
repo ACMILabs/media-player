@@ -42,13 +42,19 @@ class Server:
         """
         data = '{},'.format(data).encode()
 
-        for client in self.clients:
-            try:
-                client.send(data)
-            except socket.error:
-                print(f'Connection to client: {client} was broken!')
-                client.close()
-                self.clients.remove(client)
+        try:
+            for client in self.clients:
+                try:
+                    client.send(data)
+                except socket.error:
+                    print(f'Connection to client: {client} was broken!')
+                    client.close()
+                    self.clients.remove(client)
+        except RuntimeError as exception:
+            # e.g. #139 RuntimeError: Set changed size during iteration
+            # We're sending this time data every 1 second, so okay to skip a few as clients arrive
+            # If it becomes a problem, write a locking mechanism for listen_for_clients()
+            print(f'Media Player Server exception while trying to send {data}: {exception}')
 
 
 class Client:  # pylint: disable=R0903
