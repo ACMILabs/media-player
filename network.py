@@ -66,19 +66,9 @@ class Client:  # pylint: disable=R0903
     def __init__(self, address, port):
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        print(f'Connecting to {address} port {port}')
-        connected = False
-        while not connected:
-            try:
-                self.sock.connect((address, port))
-                connected = True
-            except ConnectionRefusedError:
-                print(f'Waiting for server at {address} port {port}')
-                time.sleep(1)
-            except OSError:
-                print(f'Can\'t connect to {address} port {port}')
-                time.sleep(1)
+        self.address = address
+        self.port = port
+        self.connect()
 
     def receive(self):
         """
@@ -91,8 +81,28 @@ class Client:  # pylint: disable=R0903
                 data = data.decode()
                 pos = data.split(',')[-2]
                 return int(pos)
+            print(f'No data received... {data}')
             return None
         except OSError:
             print(f'Closing socket: {self.sock}')
             self.sock.close()
+            print('Attempting to reconnect...')
+            self.connect()
             return None
+
+    def connect(self):
+        """
+        Attempt to connect to the server.
+        """
+        print(f'Connecting to {self.address} port {self.port}')
+        connected = False
+        while not connected:
+            try:
+                self.sock.connect((self.address, self.port))
+                connected = True
+            except ConnectionRefusedError:
+                print(f'Waiting for server at {self.address} port {self.port}')
+                time.sleep(1)
+            except OSError:
+                print(f'Can\'t connect to {self.address} port {self.port}')
+                time.sleep(1)

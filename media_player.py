@@ -546,6 +546,9 @@ class MediaPlayer():
             while True:
                 server_time = self.client.receive()
                 if not server_time:
+                    if DEBUG:
+                        print('No server_time received, attempting to re-setup sync...')
+                    self.setup_sync()
                     continue
                 client_time = self.get_current_time()
                 if DEBUG:
@@ -563,6 +566,8 @@ class MediaPlayer():
             while True:
                 time.sleep(1)
                 self.server.send(self.get_current_time())
+                if DEBUG:
+                    print(f'Clients: {self.server.clients}')
 
 
 if __name__ == "__main__":
