@@ -40,6 +40,7 @@ VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false') == 'true'
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
+SYNC_LATENCY = os.getenv('SYNC_DRIFT_THRESHOLD', '30')  # latency to sync a client in milliseconds
 IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
 DEBUG = os.getenv('DEBUG', 'false') == 'true'
 SCREEN_WIDTH = os.getenv('SCREEN_WIDTH')
@@ -559,8 +560,11 @@ class MediaPlayer():
                     )
                 if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
                     if DEBUG:
-                        print('Drifted, syncing...')
-                    self.vlc['player'].set_time(server_time)
+                        print(
+                            f'Drifted, syncing with server: {server_time} '
+                            f'plus sync latency of {SYNC_LATENCY}'
+                        )
+                    self.vlc['player'].set_time(server_time + int(SYNC_LATENCY))
 
         if SYNC_IS_SERVER:
             while True:
