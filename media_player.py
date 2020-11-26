@@ -40,7 +40,7 @@ VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false') == 'true'
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
-SYNC_LATENCY = os.getenv('SYNC_DRIFT_THRESHOLD', '30')  # latency to sync a client in milliseconds
+SYNC_LATENCY = os.getenv('SYNC_LATENCY', '30')  # latency to sync a client in milliseconds
 IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
 DEBUG = os.getenv('DEBUG', 'false') == 'true'
 SCREEN_WIDTH = os.getenv('SCREEN_WIDTH')
