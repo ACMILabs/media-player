@@ -82,6 +82,7 @@ Optional variables:
 
 ```.env
 SYNC_DRIFT_THRESHOLD # Defaults to 40. (milliseconds)
+SYNC_LATENCY # Defaults to 30. (milliseconds)
 SUBTITLES # Set to true will display subtitles
 SUBTITLES_FONT_SIZE # Set a subtitle size value of 0-4096
 SUBTITLES_FONT_WEIGHT # Set the font weight to regular or bold
@@ -179,4 +180,10 @@ To setup a user:
 The address of the AMQP service is then: `amqp://username:password@172.16.80.105:5672//`
 
 ## Synchronised Playback
-Several media players may be configured to play video files of the exact same length in synchronised time with each other. This is done be setting one media player to be the 'synchronisation server', by setting the config variable `SYNC_IS_SERVER` to True. The remaining media players should be set to track the server by setting the config variable `SYNC_CLIENT_TO` to the IP address of the synchronisation server. 
+
+Several media players may be configured to play video files of the exact same length in synchronised time with each other. This is done be setting one media player to be the 'synchronisation server', by setting the config variable `SYNC_IS_SERVER` to True. The remaining media players should be set to track the server by setting the config variable `SYNC_CLIENT_TO` to the IP address of the synchronisation server.
+
+To tune the synchronisation settings, try these optional variables:
+
+* `SYNC_DRIFT_THRESHOLD` - the number of milliseconds playback difference between the server and client before attempting to re-sync the playback
+* `SYNC_LATENCY` - the number of milliseconds your hardware device takes to seek the new playback position

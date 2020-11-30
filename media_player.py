@@ -40,6 +40,7 @@ VLC_CONNECTION_RETRIES = int(os.getenv('VLC_CONNECTION_RETRIES', '3'))
 SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false') == 'true'
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
+SYNC_LATENCY = os.getenv('SYNC_LATENCY', '30')  # latency to sync a client in milliseconds
 IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
 DEBUG = os.getenv('DEBUG', 'false') == 'true'
 SCREEN_WIDTH = os.getenv('SCREEN_WIDTH')
@@ -546,7 +547,22 @@ class MediaPlayer():
             while True:
                 server_time = self.client.receive()
                 if not server_time:
+                    self.client.sync_attempts += 1
+                    if self.client.sync_attempts > 3:
+                        if DEBUG:
+                            print('No server_time received, attempting to re-setup sync...')
+                        self.setup_sync()
+                        if DEBUG:
+                            print(f'Sync attempts reset to: {self.client.sync_attempts}')
+                    else:
+                        if DEBUG:
+                            print(
+                                'No server_time received, sync_attempts: '
+                                f'{self.client.sync_attempts}'
+                            )
                     continue
+                else:
+                    self.client.sync_attempts = 0
                 client_time = self.get_current_time()
                 if DEBUG:
                     print(
@@ -556,13 +572,18 @@ class MediaPlayer():
                     )
                 if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
                     if DEBUG:
-                        print('Drifted, syncing...')
-                    self.vlc['player'].set_time(server_time)
+                        print(
+                            f'Drifted, syncing with server: {server_time} '
+                            f'plus sync latency of {SYNC_LATENCY}'
+                        )
+                    self.vlc['player'].set_time(server_time + int(SYNC_LATENCY))
 
         if SYNC_IS_SERVER:
             while True:
                 time.sleep(1)
                 self.server.send(self.get_current_time())
+                if DEBUG:
+                    print(f'Clients: {self.server.clients}')
 
 
 if __name__ == "__main__":
