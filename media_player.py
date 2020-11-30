@@ -547,10 +547,22 @@ class MediaPlayer():
             while True:
                 server_time = self.client.receive()
                 if not server_time:
-                    if DEBUG:
-                        print('No server_time received, attempting to re-setup sync...')
-                    self.setup_sync()
+                    self.client.sync_attempts += 1
+                    if self.client.sync_attempts > 3:
+                        if DEBUG:
+                            print('No server_time received, attempting to re-setup sync...')
+                        self.setup_sync()
+                        if DEBUG:
+                            print(f'Sync attempts reset to: {self.client.sync_attempts}')
+                    else:
+                        if DEBUG:
+                            print(
+                                'No server_time received, sync_attempts: '
+                                f'{self.client.sync_attempts}'
+                            )
                     continue
+                else:
+                    self.client.sync_attempts = 0
                 client_time = self.get_current_time()
                 if DEBUG:
                     print(

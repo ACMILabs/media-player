@@ -68,6 +68,7 @@ class Client:  # pylint: disable=R0903
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.address = address
         self.port = port
+        self.sync_attempts = 0
         self.connect()
 
     def receive(self):
