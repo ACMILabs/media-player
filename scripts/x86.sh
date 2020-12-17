@@ -35,7 +35,7 @@ DISPLAYS=`ps -u $(id -u) -o pid= | \
 echo $DISPLAYS
 
 # If DISPLAYS doesn't include 0.0 set the new display
-if [[ $DISPLAYS == *"0.0"* ]]; then
+if [[ $DISPLAYS == *":0.0"* ]]; then
   echo "Display includes 0.0 so let's launch..."
 else
   LAST_DISPLAY=`ps -u $(id -u) -o pid= | \
