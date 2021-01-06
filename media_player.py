@@ -447,7 +447,7 @@ class MediaPlayer():
         """
         playlist_json_data = {}
         try:
-            response = requests.get(XOS_PLAYLIST_ENDPOINT + XOS_PLAYLIST_ID, timeout=5)
+            response = requests.get(XOS_PLAYLIST_ENDPOINT + XOS_PLAYLIST_ID + '/', timeout=5)
             response.raise_for_status()
             playlist_json_data = response.json()
 
