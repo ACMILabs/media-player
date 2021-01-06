@@ -7,7 +7,7 @@ services:
       dockerfile: development/Dockerfile
     hostname: mediaplayer
     container_name: mediaplayer
-    env_file: ../dev.env
+    env_file: ../dev.tmpl.env
     volumes:
       - ../:/code
     tty: true

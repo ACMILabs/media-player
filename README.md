@@ -100,12 +100,16 @@ The media player makes a get request to a playlist endpoint and expects a respon
     "playlist_labels": [
         {
             "label": {
-                "id": 44,
+                "id": 44
+            },
+            "video": {
+                "id": 12,
+                "resource": "MP4_VIDEO_FILE_URL"
             },
             "resource": "MP4_VIDEO_FILE_URL",
-            "subtitles": "SRT_SUBTITLE_FILE_URL",
-        },
-    ],
+            "subtitles": "SRT_SUBTITLE_FILE_URL"
+        }
+    ]
 }
 
 ```
