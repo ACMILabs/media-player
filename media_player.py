@@ -478,7 +478,7 @@ class MediaPlayer():
             for playlist_label in playlist_labels:
                 local_playlist_label = self.download_resources(playlist_label)
                 if not local_playlist_label:
-                    print(f'Invalid video resource: {playlist_label["resource"]}, skipping.')
+                    print(f'Invalid video resource: {playlist_label["video"]}, skipping.')
                     continue
                 local_resource = local_playlist_label['resource']
                 media = self.vlc['instance'].media_new(local_resource)

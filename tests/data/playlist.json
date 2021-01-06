@@ -20,6 +20,39 @@
           }
         ]
       },
+      "video": {
+        "id": 2,
+        "title": "sample.mp4",
+        "resource": "file://../../data/resources/sample.mp4",
+        "web_resource": "file://../../data/resources/sample.mp4",
+        "duration_secs": 20.204,
+        "subtitles": null,
+        "master_metadata": null,
+        "access_metadata": null,
+        "web_metadata": {
+          "width": 1920,
+          "height": 1080,
+          "checksum": "ea28ad0b8ef30ee436c485d7a00b830d",
+          "mime_type": "video/mp4",
+          "audio_codec": null,
+          "video_codec": "h264",
+          "duration_hms": "00:20",
+          "duration_secs": 20.204,
+          "audio_bit_rate": null,
+          "audio_channels": null,
+          "video_bit_rate": 43369,
+          "file_size_bytes": 124897,
+          "overall_bit_rate": 49454,
+          "video_frame_rate": 59.94005994005994,
+          "audio_sample_rate": null,
+          "creation_datetime": "2020-09-28 11:50:48.737992",
+          "audio_max_bit_rate": null,
+          "video_max_bit_rate": null
+        },
+        "access_level": "No access",
+        "snapshot": "file://../../data/resources/sample.jpg",
+        "animated_snapshot": ""
+      },
       "resource": "file://../../data/resources/sample.mp4",
       "subtitles": "file://../../data/resources/sample.srt"
     },
@@ -40,6 +73,39 @@
             "first_production_year": "1993"
           }
         ]
+      },
+      "video": {
+        "id": 2,
+        "title": "sample.mp4",
+        "resource": "file://../../data/resources/sample.mp4",
+        "web_resource": "file://../../data/resources/sample.mp4",
+        "duration_secs": 20.204,
+        "subtitles": null,
+        "master_metadata": null,
+        "access_metadata": null,
+        "web_metadata": {
+          "width": 1920,
+          "height": 1080,
+          "checksum": "ea28ad0b8ef30ee436c485d7a00b830d",
+          "mime_type": "video/mp4",
+          "audio_codec": null,
+          "video_codec": "h264",
+          "duration_hms": "00:20",
+          "duration_secs": 20.204,
+          "audio_bit_rate": null,
+          "audio_channels": null,
+          "video_bit_rate": 43369,
+          "file_size_bytes": 124897,
+          "overall_bit_rate": 49454,
+          "video_frame_rate": 59.94005994005994,
+          "audio_sample_rate": null,
+          "creation_datetime": "2020-09-28 11:50:48.737992",
+          "audio_max_bit_rate": null,
+          "video_max_bit_rate": null
+        },
+        "access_level": "No access",
+        "snapshot": "file://../../data/resources/sample.jpg",
+        "animated_snapshot": ""
       },
       "resource": "file://../../data/resources/sample.mp4",
       "subtitles": "file://../../data/resources/sample.srt"
@@ -62,8 +128,61 @@
           }
         ]
       },
+      "video": {
+        "id": 2,
+        "title": "sample.mp4",
+        "resource": "file://../../data/resources/sample.mp4",
+        "web_resource": "file://../../data/resources/sample.mp4",
+        "duration_secs": 20.204,
+        "subtitles": null,
+        "master_metadata": null,
+        "access_metadata": null,
+        "web_metadata": {
+          "width": 1920,
+          "height": 1080,
+          "checksum": "ea28ad0b8ef30ee436c485d7a00b830d",
+          "mime_type": "video/mp4",
+          "audio_codec": null,
+          "video_codec": "h264",
+          "duration_hms": "00:20",
+          "duration_secs": 20.204,
+          "audio_bit_rate": null,
+          "audio_channels": null,
+          "video_bit_rate": 43369,
+          "file_size_bytes": 124897,
+          "overall_bit_rate": 49454,
+          "video_frame_rate": 59.94005994005994,
+          "audio_sample_rate": null,
+          "creation_datetime": "2020-09-28 11:50:48.737992",
+          "audio_max_bit_rate": null,
+          "video_max_bit_rate": null
+        },
+        "access_level": "No access",
+        "snapshot": "file://../../data/resources/sample.jpg",
+        "animated_snapshot": ""
+      },
       "resource": "file://../../data/resources/sample.mp4",
       "subtitles": "file://../../data/resources/sample.srt"
+    },
+    {
+      "label": {
+        "id": 666,
+        "title": "No video or resource",
+        "description": "A label without a video or a resource",
+        "publication": "1989, Dir. Hayao Miyazaki",
+        "rights": "",
+        "works": [
+          {
+            "id": 48,
+            "title": "Kiki's Delivery Service",
+            "image": "file://../../data/resources/sample.jpg",
+            "abstract": "",
+            "brief_description": "A label without a video or a resource",
+            "first_production_year": "1989"
+          }
+        ]
+      },
+      "video": null
     }
   ]
 }
