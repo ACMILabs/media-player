@@ -1,30 +1,8 @@
-FROM python:3.8
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update \
-    && apt-get upgrade -y --no-install-recommends \
-    && apt-get install -y --no-install-recommends \
-        vlc vlc-plugin-* g++ \
-        xserver-xorg \
-        xserver-xorg-input-evdev \
-        xinit \
-        xfce4 \
-        xfce4-terminal \
-        x11-xserver-utils \
-        dbus-x11 \
-        matchbox-keyboard \
-        xterm \
-        # For system volume
-        libasound2-dev \
-        # Audio
-        alsa-utils
-
-# Intel GPU drivers for VLC
-ARG IS_X86
-RUN if [ "$IS_X86" = "true" ]; \
-  then install_packages i965-va-driver vainfo; \
-  fi
+# Built from Dockerfile.development
+# To rebuild:
+# docker build --file development/Dockerfile.development -t acmilabs/mediaplayer-development:v1 .
+# docker push acmilabs/mediaplayer-development:v1
+FROM acmilabs/mediaplayer-development:v1
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \

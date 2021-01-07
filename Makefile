@@ -10,7 +10,7 @@ lint:
     # Lint the code and check imports have been sorted correctly
 	pylint *
 	flake8
-	isort -rc --check-only .
+	isort --check-only .
 test:
 	# Run tests
 	pytest -v -s

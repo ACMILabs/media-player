@@ -67,7 +67,7 @@ CACHED_PLAYLIST_JSON = '/data/cached_playlist.json'
 APLAY_REGEX = re.compile(r'card (?P<card_id>\d+): (.+), device (?P<device_id>\d+): (.+)')
 
 
-class MediaPlayer():
+class MediaPlayer():  # pylint: disable=too-many-branches
     """
     A media player that communicates with XOS to download resources
     and update the message broker with its playback status.
@@ -546,7 +546,9 @@ class MediaPlayer():
         if SYNC_CLIENT_TO:
             while True:
                 server_time = self.client.receive()
-                if not server_time:
+                if server_time:
+                    self.client.sync_attempts = 0
+                else:
                     self.client.sync_attempts += 1
                     if self.client.sync_attempts > 3:
                         if DEBUG:
@@ -561,8 +563,6 @@ class MediaPlayer():
                                 f'{self.client.sync_attempts}'
                             )
                     continue
-                else:
-                    self.client.sync_attempts = 0
                 client_time = self.get_current_time()
                 if DEBUG:
                     print(
