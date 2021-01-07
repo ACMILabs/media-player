@@ -3,6 +3,8 @@ Media player
 
 A media player using Python to launch and control VLC on low-cost hardware.
 
+![Media Player CI](https://github.com/ACMILabs/media-player/workflows/Media%20Player%20CI/badge.svg)
+
 ## Features:
 * Runs on Raspberry Pi 4 and Intel small-form-factor PCs.
 * Downloads a playlist of videos (with optional subtitles) from XOS and saves these locally so that playback can take place after reboot without an internet connection
@@ -51,12 +53,18 @@ We use small-form-factor PCs such as Dell Optiplex Micro or Intel NUC in places 
 ## Installation on developer machine
 
 * Clone this repository.
-
-* `$ cd development`
-* Build the development container `$ docker-compose up`
+* Build the development container `$ cd development` and `$ docker-compose up --build`
 * `cp dev.tmpl.env dev.env`
 * Edit the `dev.env` with any required values (a default playlist will be used otherwise)
 * Run `cd development && docker-compose up`
+
+### Rebuild the development base image
+
+If you change any of the requirements you'll need to re-build the development container's base image `acmilabs/mediaplayer-development:v1`, it's built from `development/Dockerfile.development`. To re-build it run:
+
+Re-build it: `docker build --file development/Dockerfile.development -t acmilabs/mediaplayer-development:v1 .`
+
+Push the new image to Docker Hub: `docker push acmilabs/mediaplayer-development:v1`
 
 ## Testing and linting
 
