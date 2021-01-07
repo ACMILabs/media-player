@@ -1,0 +1,16 @@
+name: Media Player CI
+
+on: [push]
+
+jobs:
+  build-and-test-python:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build Python lint and test
+      run: |
+        cd development && docker-compose up --build -d
+    - name: Run Python lint and test
+      run: docker exec mediaplayer make linttest
