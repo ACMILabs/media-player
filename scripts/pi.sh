@@ -67,8 +67,8 @@ else
   echo "Screen resolution parsed as: ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
 fi
 
-# If DISPLAY isn't set, restart the mediaplayer container
-if [[ ! -z "$DISPLAY" ]]; then
+# If DISPLAY still isn't set, restart the mediaplayer container
+if [[ -z "$DISPLAY" ]]; then
   echo "ERROR: DISPLAY isn't set, so restarting the media player container: ${DISPLAY}"
   curl -H "Content-Type: application/json" -d "{\"serviceName\": \"$BALENA_SERVICE_NAME\"}" "$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/restart-service?apikey=$BALENA_SUPERVISOR_API_KEY"
 fi
