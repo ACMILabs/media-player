@@ -69,8 +69,13 @@ fi
 
 # If DISPLAY, SCREEN_WIDTH or SCREEN_HEIGHT still isn't set, restart the mediaplayer container
 if [[ -z "$DISPLAY" ]] || [[ -z "$SCREEN_WIDTH" ]] || [[ -z "$SCREEN_HEIGHT" ]]; then
-  echo "ERROR: DISPLAY, SCREEN_WIDTH or SCREEN_HEIGHT isn't set, so restarting the media player container: ${DISPLAY}, ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
-  curl -H "Content-Type: application/json" -d "{\"serviceName\": \"$BALENA_SERVICE_NAME\"}" "$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/restart-service?apikey=$BALENA_SUPERVISOR_API_KEY"
+  echo "ERROR: DISPLAY, SCREEN_WIDTH or SCREEN_HEIGHT isn't set, so restarting the mediaplayer container: ${DISPLAY}, ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
+  for i in {1..10}
+  do
+    echo "Attempt ${i} to restart mediaplayer..."
+    curl -H "Content-Type: application/json" -d "{\"serviceName\": \"$BALENA_SERVICE_NAME\"}" "$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/restart-service?apikey=$BALENA_SUPERVISOR_API_KEY"
+    sleep 5
+  done
 fi
 
 # Unmute system audio
