@@ -77,7 +77,12 @@ elif [[ ! -z "$SCREEN_WIDTH" ]] && [[ ! -z "$SCREEN_HEIGHT" ]]; then
   xrandr -s "$SCREEN_WIDTH"x"$SCREEN_HEIGHT"
 fi
 
-# Unmute system audio
-# ./scripts/unmute.sh
+# If headphones audio is selected, we need to unmute Master audio
+if [[ ! -z "$AUDIO_DEVICE_REGEX" ]] && [[ $AUDIO_DEVICE_REGEX == "headphones" ]]; then
+  echo "Headphones selected, so un-muting master audio..."
+  ./scripts/unmute.sh
+  echo "Setting AUDIO_DEVICE_REGEX to 'analog' for Optiplex 3070..."
+  export AUDIO_DEVICE_REGEX=analog
+fi
 
 python media_player.py
