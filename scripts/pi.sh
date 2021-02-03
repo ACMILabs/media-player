@@ -72,9 +72,10 @@ if [[ -z "$DISPLAY" ]] || [[ -z "$SCREEN_WIDTH" ]] || [[ -z "$SCREEN_HEIGHT" ]];
   echo "ERROR: DISPLAY, SCREEN_WIDTH or SCREEN_HEIGHT isn't set, so restarting the mediaplayer container: ${DISPLAY}, ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
   for i in {1..10}
   do
-    echo "Attempt ${i} to restart mediaplayer..."
+    echo "Attempt ${i} to restart mediaplayer in 30 seconds..."
+    sleep 30
     curl -H "Content-Type: application/json" -d "{\"serviceName\": \"$BALENA_SERVICE_NAME\"}" "$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/restart-service?apikey=$BALENA_SUPERVISOR_API_KEY"
-    sleep 5
+    sleep 30
   done
 fi
 
