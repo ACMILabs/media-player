@@ -118,6 +118,7 @@ def test_client_drifts_from_server():
     player = MediaPlayer()
     player.client.receive = MagicMock(return_value=50)
     player.get_current_time = MagicMock(return_value=100)
+    player.vlc['player'].get_length = MagicMock(return_value=3000)
     assert_called_in_infinite_loop(
         'vlc.MediaPlayer.set_time',
         player.sync_to_server

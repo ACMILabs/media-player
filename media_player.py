@@ -576,7 +576,16 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                             f'Drifted, syncing with server: {server_time} '
                             f'plus sync latency of {SYNC_LATENCY}'
                         )
-                    self.vlc['player'].set_time(server_time + int(SYNC_LATENCY))
+                    target_time = server_time + int(SYNC_LATENCY)
+                    video_length = self.vlc['player'].get_length()
+                    if target_time > video_length:
+                        if DEBUG:
+                            print(
+                                f'Target time {target_time} is greater than the length '
+                                f'of this video: {video_length}, ignoring sync...'
+                            )
+                    else:
+                        self.vlc['player'].set_time(target_time)
 
         if SYNC_IS_SERVER:
             while True:
