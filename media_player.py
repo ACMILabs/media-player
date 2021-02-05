@@ -571,13 +571,14 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                         f'drift: {abs(client_time - server_time)}'
                     )
                 if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
+                    target_time = server_time + int(SYNC_LATENCY)
+                    video_length = int(self.vlc['player'].get_length())
                     if DEBUG:
                         print(
                             f'Drifted, syncing with server: {server_time} '
-                            f'plus sync latency of {SYNC_LATENCY}'
+                            f'plus sync latency of {SYNC_LATENCY}. '
+                            f'Target: {target_time}, video length: {video_length}'
                         )
-                    target_time = server_time + int(SYNC_LATENCY)
-                    video_length = self.vlc['player'].get_length()
                     if target_time > video_length:
                         if DEBUG:
                             print(
