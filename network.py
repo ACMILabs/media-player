@@ -2,9 +2,12 @@
 Based on: https://github.com/oaubert/python-vlc/tree/master/examples/video_sync
 """
 
+import os
 import socket
 import threading
 import time
+
+SYNC_MAX_CLIENTS = int(os.getenv('SYNC_MAX_CLIENTS', '5'))
 
 
 class Server:
@@ -20,7 +23,7 @@ class Server:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((host, port))
 
-        self.sock.listen(5)
+        self.sock.listen(SYNC_MAX_CLIENTS)
 
         self.clients = set()
         listener_thread = threading.Thread(target=self.listen_for_clients, args=())
