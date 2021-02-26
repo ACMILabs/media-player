@@ -89,6 +89,9 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         # Holds the last clock time when VLC was asked for play time.
         self.time_at_last_poll = 0
 
+        # Current playlist index being played
+        self.current_playlist_position = 0
+
         if IS_SYNCED_PLAYER:
             self.setup_sync()
 
@@ -199,6 +202,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
             stats = vlc.MediaStats()
             media.get_stats(stats)
             playlist_position = self.vlc['playlist'].index_of_item(media)
+            self.current_playlist_position = playlist_position
             try:
                 label_id = self.playlist[playlist_position]['label']['id']
             except TypeError:
@@ -545,7 +549,9 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         """
         if SYNC_CLIENT_TO:
             while True:
-                server_time = self.client.receive()
+                server_state = self.client.receive()
+                server_playlist_position = server_state[0]
+                server_time = server_state[1]
                 if server_time:
                     self.client.sync_attempts = 0
                 else:
@@ -586,12 +592,15 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                                 f'of this video: {video_length}, ignoring sync...'
                             )
                     else:
+                        if not self.current_playlist_position == server_playlist_position:
+                            self.vlc['list_player'].play_item_at_index(server_playlist_position)
+
                         self.vlc['player'].set_time(target_time)
 
         if SYNC_IS_SERVER:
             while True:
                 time.sleep(1)
-                self.server.send(self.get_current_time())
+                self.server.send(f'{self.current_playlist_position},{self.get_current_time()}')
                 if DEBUG:
                     print(f'Clients: {self.server.clients}')
 

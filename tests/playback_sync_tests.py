@@ -1,6 +1,8 @@
 import signal
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from media_player import MediaPlayer
 
 TIMEOUT_SECS = 5
@@ -116,10 +118,36 @@ def test_client_drifts_from_server():
     Check that if the time drifts, the client calls set_time on its player.
     """
     player = MediaPlayer()
-    player.client.receive = MagicMock(return_value=50)
+    player.client.receive = MagicMock(return_value=[1, 50])
     player.get_current_time = MagicMock(return_value=100)
+    player.current_playlist_position = 1
     player.vlc['player'].get_length = MagicMock(return_value=3000)
     assert_called_in_infinite_loop(
         'vlc.MediaPlayer.set_time',
+        player.sync_to_server
+    )
+    with pytest.raises(AssertionError):
+        # Assert playlist sync isn't called
+        assert_called_in_infinite_loop(
+            'vlc.MediaListPlayer.play_item_at_index',
+            player.sync_to_server
+        )
+
+
+@patch('media_player.network.Client', MagicMock())
+@patch('media_player.SYNC_CLIENT_TO', '100.100.100.100')
+@patch('media_player.IS_SYNCED_PLAYER', True)
+def test_client_drifts_from_server_sets_playlist_position():
+    """
+    Check that if the time drifts on a server playing a playlist,
+    the client calls play_item_at_index on its player.
+    """
+    player = MediaPlayer()
+    player.client.receive = MagicMock(return_value=[2, 50])
+    player.get_current_time = MagicMock(return_value=100)
+    player.current_playlist_position = 1
+    player.vlc['player'].get_length = MagicMock(return_value=3000)
+    assert_called_in_infinite_loop(
+        'vlc.MediaListPlayer.play_item_at_index',
         player.sync_to_server
     )
