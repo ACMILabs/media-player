@@ -444,6 +444,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                 sentry_sdk.capture_exception(exception)
         message = f'Tried to download {url} {DOWNLOAD_RETRIES} times, giving up.'
         print(message)
+        return None
 
     def download_playlist_from_xos(self):
         """
