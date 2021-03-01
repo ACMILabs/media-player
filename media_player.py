@@ -599,7 +599,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                             f'of this video: {video_length}, ignoring sync...'
                         )
                     else:
-                        if not client_playlist_position == server_playlist_position:
+                        if client_playlist_position != server_playlist_position:
                             self.print_debug(
                                 f'Server playlist {server_playlist_position} is different to '
                                 f'client {client_playlist_position}, syncing now...'
