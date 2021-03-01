@@ -82,11 +82,8 @@ class Client:  # pylint: disable=R0903
         try:
             data = self.sock.recv(4096)
             if data:
-                data = data.decode()
-                # playlist_position,time
-                server_state_strings = [data.split(',')[-3], data.split(',')[-2]]
-                server_state_ints = list(map(int, server_state_strings))
-                return server_state_ints
+                data = data.decode().split(',')
+                return [int(data[-3]), int(data[-2])]
             print(f'No data received... {data}')
             return None
         except OSError:
