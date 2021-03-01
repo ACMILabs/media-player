@@ -578,6 +578,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                             f'{self.client.sync_attempts}'
                         )
                     continue
+
                 client_time = self.get_current_time()
                 client_playlist_position = self.current_playlist_position
                 self.print_debug(
@@ -585,6 +586,19 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                     f'client playlist/time: {client_playlist_position}/{client_time}, '
                     f'drift: {abs(client_time - server_time)}'
                 )
+
+                if client_playlist_position != server_playlist_position:
+                    self.print_debug(
+                        f'Server playlist {server_playlist_position} is different to '
+                        f'client {client_playlist_position}, syncing now...'
+                    )
+                    self.vlc['list_player'].play_item_at_index(server_playlist_position)
+                    client_time = self.get_current_time()
+                    client_playlist_position = server_playlist_position
+                    self.print_debug(
+                        f'Client now at: {client_playlist_position}/{client_time}'
+                    )
+
                 if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
                     target_time = server_time + int(SYNC_LATENCY)
                     video_length = int(self.vlc['player'].get_length())
@@ -599,13 +613,6 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                             f'of this video: {video_length}, ignoring sync...'
                         )
                     else:
-                        if client_playlist_position != server_playlist_position:
-                            self.print_debug(
-                                f'Server playlist {server_playlist_position} is different to '
-                                f'client {client_playlist_position}, syncing now...'
-                            )
-                            self.vlc['list_player'].play_item_at_index(server_playlist_position)
-
                         self.vlc['player'].set_time(target_time)
 
         if SYNC_IS_SERVER:

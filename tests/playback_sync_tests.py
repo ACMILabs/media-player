@@ -151,3 +151,22 @@ def test_client_drifts_from_server_sets_playlist_position():
         'vlc.MediaListPlayer.play_item_at_index',
         player.sync_to_server
     )
+
+
+@patch('media_player.network.Client', MagicMock())
+@patch('media_player.SYNC_CLIENT_TO', '100.100.100.100')
+@patch('media_player.IS_SYNCED_PLAYER', True)
+def test_client_playlist_position_set_without_drift():
+    """
+    Check that a client's playlist position is set even if
+    the client hasn't drifted from the server.
+    """
+    player = MediaPlayer()
+    player.client.receive = MagicMock(return_value=[2, 95])
+    player.get_current_time = MagicMock(return_value=100)
+    player.current_playlist_position = 1
+    player.vlc['player'].get_length = MagicMock(return_value=3000)
+    assert_called_in_infinite_loop(
+        'vlc.MediaListPlayer.play_item_at_index',
+        player.sync_to_server
+    )
