@@ -83,8 +83,8 @@ class Client:  # pylint: disable=R0903
             data = self.sock.recv(4096)
             if data:
                 data = data.decode()
-                comma_separated_server_state_string = data.split(',')[-2]  # playlist_position,time
-                server_state_strings = comma_separated_server_state_string.split(',')
+                # playlist_position,time
+                server_state_strings = [data.split(',')[-3], data.split(',')[-2]]
                 server_state_ints = list(map(int, server_state_strings))
                 return server_state_ints
             print(f'No data received... {data}')

@@ -551,8 +551,12 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         if SYNC_CLIENT_TO:
             while True:
                 server_state = self.client.receive()
-                server_playlist_position = server_state[0]
-                server_time = server_state[1]
+                try:
+                    server_playlist_position = server_state[0]
+                    server_time = server_state[1]
+                except IndexError as exception:
+                    print(f'Error from server_state data: {server_state}, exception: {exception}')
+                    continue
                 if server_time:
                     self.client.sync_attempts = 0
                 else:
@@ -573,8 +577,8 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                 client_time = self.get_current_time()
                 if DEBUG:
                     print(
-                        f'server time: {server_time}, '
-                        f'client time: {client_time}, '
+                        f'Server playlist/time: {server_playlist_position}/{server_time}, '
+                        f'client playlist/time: {self.current_playlist_position}/{client_time}, '
                         f'drift: {abs(client_time - server_time)}'
                     )
                 if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
@@ -594,6 +598,11 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                             )
                     else:
                         if not self.current_playlist_position == server_playlist_position:
+                            if DEBUG:
+                                print(
+                                    f'Server playlist {server_playlist_position} is different to '
+                                    f'client {self.current_playlist_position}, syncing now...'
+                                )
                             self.vlc['list_player'].play_item_at_index(server_playlist_position)
 
                         self.vlc['player'].set_time(target_time)
