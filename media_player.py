@@ -561,8 +561,8 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                 try:
                     server_playlist_position = server_state[0]
                     server_time = server_state[1]
-                except IndexError as exception:
-                    print(f'Error from server_state data: {server_state}, exception: {exception}')
+                except (IndexError, TypeError) as exception:
+                    print(f'Unexpected server_state data: {server_state}, exception: {exception}')
                     continue
                 if server_time:
                     self.client.sync_attempts = 0
