@@ -634,7 +634,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
             while True:
                 time.sleep(1)
                 current_playlist_position = (
-                    self.get_current_playlist_position or self.current_playlist_position
+                    self.get_current_playlist_position() or self.current_playlist_position
                 )
                 self.server.send(f'{current_playlist_position},{self.get_current_time()}')
                 self.print_debug(f'Clients: {self.server.clients}')
