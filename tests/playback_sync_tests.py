@@ -121,6 +121,7 @@ def test_client_drifts_from_server():
     player.client.receive = MagicMock(return_value=[1, 50])
     player.get_current_time = MagicMock(return_value=100)
     player.current_playlist_position = 1
+    player.get_current_playlist_position = MagicMock(return_value=None)
     player.vlc['player'].get_length = MagicMock(return_value=3000)
     assert_called_in_infinite_loop(
         'vlc.MediaPlayer.set_time',
@@ -146,6 +147,7 @@ def test_client_drifts_from_server_sets_playlist_position():
     player.client.receive = MagicMock(return_value=[2, 50])
     player.get_current_time = MagicMock(return_value=100)
     player.current_playlist_position = 1
+    player.get_current_playlist_position = MagicMock(return_value=None)
     player.vlc['player'].get_length = MagicMock(return_value=3000)
     assert_called_in_infinite_loop(
         'vlc.MediaListPlayer.play_item_at_index',
@@ -165,8 +167,26 @@ def test_client_playlist_position_set_without_drift():
     player.client.receive = MagicMock(return_value=[2, 95])
     player.get_current_time = MagicMock(return_value=100)
     player.current_playlist_position = 1
+    player.get_current_playlist_position = MagicMock(return_value=None)
     player.vlc['player'].get_length = MagicMock(return_value=3000)
     assert_called_in_infinite_loop(
         'vlc.MediaListPlayer.play_item_at_index',
         player.sync_to_server
     )
+
+    # If get_current_playback_position() returns a value, it uses that
+    player.current_playlist_position = 2
+    player.get_current_playlist_position = MagicMock(return_value=1)
+    assert_called_in_infinite_loop(
+        'vlc.MediaListPlayer.play_item_at_index',
+        player.sync_to_server
+    )
+
+    with pytest.raises(AssertionError):
+        # Assert playlist sync isn't called
+        player.current_playlist_position = 2
+        player.get_current_playlist_position = MagicMock(return_value=2)
+        assert_called_in_infinite_loop(
+            'vlc.MediaListPlayer.play_item_at_index',
+            player.sync_to_server
+        )

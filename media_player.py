@@ -542,6 +542,19 @@ class MediaPlayer():  # pylint: disable=too-many-branches
             self.time_at_last_poll = int(vlc.libvlc_clock() / 1000)
         return vlc_time
 
+    def get_current_playlist_position(self):
+        """
+        Returns the integer of the position that the currently playing media file is in the
+        playlist of items being played.
+        """
+        media = self.vlc['player'].get_media()
+        if media:
+            stats = vlc.MediaStats()
+            media.get_stats(stats)
+            playlist_position = self.vlc['playlist'].index_of_item(media)
+            return playlist_position
+        return None
+
     def run_timer(self):
         """
         Constantly call get_current_time to have an accurate time whenever get_current_time
@@ -580,7 +593,9 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                     continue
 
                 client_time = self.get_current_time()
-                client_playlist_position = self.current_playlist_position
+                client_playlist_position = (
+                    self.get_current_playlist_position() or self.current_playlist_position
+                )
                 self.print_debug(
                     f'Server playlist/time: {server_playlist_position}/{server_time}, '
                     f'client playlist/time: {client_playlist_position}/{client_time}, '
@@ -618,7 +633,10 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         if SYNC_IS_SERVER:
             while True:
                 time.sleep(1)
-                self.server.send(f'{self.current_playlist_position},{self.get_current_time()}')
+                current_playlist_position = (
+                    self.get_current_playlist_position or self.current_playlist_position
+                )
+                self.server.send(f'{current_playlist_position},{self.get_current_time()}')
                 self.print_debug(f'Clients: {self.server.clients}')
 
 
