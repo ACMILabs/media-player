@@ -86,8 +86,8 @@ class Client:  # pylint: disable=R0903
                 return [int(data[-3]), int(data[-2])]
             print(f'No data received... {data}')
             return None
-        except OSError:
-            print(f'Closing socket: {self.sock}')
+        except (OSError, ValueError) as exception:
+            print(f'Closing socket: {self.sock} becuase of error: {exception}')
             self.sock.close()
             print('Attempting to reconnect...')
             self.connect()
