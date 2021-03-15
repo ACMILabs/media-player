@@ -134,6 +134,15 @@ def test_client_drifts_from_server():
             player.sync_to_server
         )
 
+    # Assert sync isn't called within 2 seconds of the end of the current video
+    with pytest.raises(AssertionError):
+        player.client.receive = MagicMock(return_value=[1, 2500])
+        player.get_current_time = MagicMock(return_value=2000)
+        assert_called_in_infinite_loop(
+            'vlc.MediaPlayer.set_time',
+            player.sync_to_server
+        )
+
 
 @patch('media_player.network.Client', MagicMock())
 @patch('media_player.SYNC_CLIENT_TO', '100.100.100.100')

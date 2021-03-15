@@ -41,6 +41,7 @@ SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false') == 'true'
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
 SYNC_LATENCY = os.getenv('SYNC_LATENCY', '30')  # latency to sync a client in milliseconds
+SYNC_IGNORE_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '2000')  # threshold in milliseconds
 IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
 DEBUG = os.getenv('DEBUG', 'false') == 'true'
 SCREEN_WIDTH = os.getenv('SCREEN_WIDTH')
@@ -617,6 +618,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                 if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
                     target_time = server_time + int(SYNC_LATENCY)
                     video_length = int(self.vlc['player'].get_length())
+                    video_time_remaining = video_length - target_time
                     self.print_debug(
                         f'Drifted, syncing with server: {server_time} '
                         f'plus sync latency of {SYNC_LATENCY}. '
@@ -626,6 +628,11 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                         self.print_debug(
                             f'Target time {target_time} is greater than the length '
                             f'of this video: {video_length}, ignoring sync...'
+                        )
+                    elif video_time_remaining < int(SYNC_IGNORE_THRESHOLD):
+                        self.print_debug(
+                            f'Only {video_time_remaining}/{video_length} remaining, '
+                            f'(threashold {SYNC_IGNORE_THRESHOLD}) so ignoring sync...'
                         )
                     else:
                         self.vlc['player'].set_time(target_time)
