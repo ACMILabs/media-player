@@ -594,6 +594,10 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                     continue
 
                 client_time = self.get_current_time()
+                if server_time == 0 or client_time == 0:
+                    # Avoid syncing at the beginning of videos
+                    continue
+
                 client_playlist_position = (
                     self.get_current_playlist_position() or self.current_playlist_position
                 )
@@ -619,6 +623,9 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                     sync = True
                     target_time = server_time + int(SYNC_LATENCY)
                     video_length = int(self.vlc['player'].get_length())
+                    if video_length == 0:
+                        # Avoid syncing when the video length is zero
+                        continue
                     video_time_remaining = video_length - target_time
                     self.print_debug(
                         f'Drifted, syncing with server: {server_time} '
