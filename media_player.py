@@ -41,6 +41,7 @@ SYNC_CLIENT_TO = os.getenv('SYNC_CLIENT_TO')
 SYNC_IS_SERVER = os.getenv('SYNC_IS_SERVER', 'false') == 'true'
 SYNC_DRIFT_THRESHOLD = os.getenv('SYNC_DRIFT_THRESHOLD', '40')  # threshold in milliseconds
 SYNC_LATENCY = os.getenv('SYNC_LATENCY', '30')  # latency to sync a client in milliseconds
+SYNC_IGNORE_THRESHOLD = os.getenv('SYNC_IGNORE_THRESHOLD', '2000')  # threshold in milliseconds
 IS_SYNCED_PLAYER = SYNC_CLIENT_TO or SYNC_IS_SERVER
 DEBUG = os.getenv('DEBUG', 'false') == 'true'
 SCREEN_WIDTH = os.getenv('SCREEN_WIDTH')
@@ -115,9 +116,8 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         flags.append('--freetype-background-opacity=255')
         flags.append('--freetype-background-color=0')
         if SCREEN_WIDTH and SCREEN_HEIGHT:
-            if DEBUG:
-                print(f'Attempting to set media player screen '
-                      f'resolution to: {SCREEN_WIDTH}x{SCREEN_HEIGHT}')
+            self.print_debug(f'Attempting to set media player screen '
+                             f'resolution to: {SCREEN_WIDTH}x{SCREEN_HEIGHT}')
             flags.append(f'--width={SCREEN_WIDTH}')
             flags.append(f'--height={SCREEN_HEIGHT}')
         self.vlc['instance'] = vlc.Instance(flags)
@@ -137,6 +137,14 @@ class MediaPlayer():  # pylint: disable=too-many-branches
 
         if SYNC_CLIENT_TO:
             self.client = network.Client(SYNC_CLIENT_TO, port=10000)
+
+    @staticmethod
+    def print_debug(message):
+        """
+        Print debug output if DEBUG is set true.
+        """
+        if DEBUG:
+            print(message)
 
     @staticmethod
     def datetime_now():
@@ -440,6 +448,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                 sentry_sdk.capture_exception(exception)
         message = f'Tried to download {url} {DOWNLOAD_RETRIES} times, giving up.'
         print(message)
+        return None
 
     def download_playlist_from_xos(self):
         """
@@ -530,6 +539,19 @@ class MediaPlayer():  # pylint: disable=too-many-branches
             self.time_at_last_poll = int(vlc.libvlc_clock() / 1000)
         return vlc_time
 
+    def get_current_playlist_position(self):
+        """
+        Returns the integer of the position that the currently playing media file is in the
+        playlist of items being played.
+        """
+        media = self.vlc['player'].get_media()
+        if media:
+            stats = vlc.MediaStats()
+            media.get_stats(stats)
+            playlist_position = self.vlc['playlist'].index_of_item(media)
+            return playlist_position
+        return None
+
     def run_timer(self):
         """
         Constantly call get_current_time to have an accurate time whenever get_current_time
@@ -545,55 +567,109 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         """
         if SYNC_CLIENT_TO:
             while True:
-                server_time = self.client.receive()
+                server_state = self.client.receive()
+                try:
+                    server_playlist_position = server_state[0]
+                    server_time = server_state[1]
+                except (IndexError, TypeError) as exception:
+                    print(f'Unexpected server_state data: {server_state}, exception: {exception}')
+                    continue
                 if server_time:
                     self.client.sync_attempts = 0
                 else:
                     self.client.sync_attempts += 1
                     if self.client.sync_attempts > 3:
-                        if DEBUG:
-                            print('No server_time received, attempting to re-setup sync...')
+                        self.print_debug('No server_time received, attempting to re-setup sync...')
                         self.setup_sync()
-                        if DEBUG:
-                            print(f'Sync attempts reset to: {self.client.sync_attempts}')
+                        self.print_debug(f'Sync attempts reset to: {self.client.sync_attempts}')
                     else:
-                        if DEBUG:
-                            print(
-                                'No server_time received, sync_attempts: '
-                                f'{self.client.sync_attempts}'
-                            )
-                    continue
-                client_time = self.get_current_time()
-                if DEBUG:
-                    print(
-                        f'server time: {server_time}, '
-                        f'client time: {client_time}, '
-                        f'drift: {abs(client_time - server_time)}'
-                    )
-                if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
-                    target_time = server_time + int(SYNC_LATENCY)
-                    video_length = int(self.vlc['player'].get_length())
-                    if DEBUG:
-                        print(
-                            f'Drifted, syncing with server: {server_time} '
-                            f'plus sync latency of {SYNC_LATENCY}. '
-                            f'Target: {target_time}, video length: {video_length}'
+                        self.print_debug(
+                            'No server_time received, sync_attempts: '
+                            f'{self.client.sync_attempts}'
                         )
-                    if target_time > video_length:
-                        if DEBUG:
-                            print(
-                                f'Target time {target_time} is greater than the length '
-                                f'of this video: {video_length}, ignoring sync...'
-                            )
-                    else:
-                        self.vlc['player'].set_time(target_time)
+                    continue
+
+                client_time = self.get_current_time()
+                if server_time == 0 or client_time == 0:
+                    # Avoid syncing at the beginning of videos
+                    continue
+
+                self.sync_playlist(server_playlist_position, server_time, client_time)
+
+                self.sync_playback(server_time, client_time)
 
         if SYNC_IS_SERVER:
             while True:
                 time.sleep(1)
-                self.server.send(self.get_current_time())
-                if DEBUG:
-                    print(f'Clients: {self.server.clients}')
+                current_playlist_position = self.get_current_playlist_position()
+                if current_playlist_position is None:
+                    self.print_debug(
+                        f'Failed to get current playlist position: {current_playlist_position}. '
+                        'Skipping this sync...'
+                    )
+                else:
+                    self.server.send(f'{current_playlist_position},{self.get_current_time()}')
+                    self.print_debug(f'Clients: {self.server.clients}')
+
+    def sync_playlist(self, server_playlist_position, server_time, client_time):
+        """
+        Sync playlists between server and client if necessary.
+        """
+        client_playlist_position = self.get_current_playlist_position()
+        self.print_debug(
+            f'Server playlist/time: {server_playlist_position}/{server_time}, '
+            f'client playlist/time: {client_playlist_position}/{client_time}, '
+            f'drift: {abs(client_time - server_time)}'
+        )
+
+        if client_playlist_position is None:
+            self.print_debug(
+                f'Failed to get current playlist position: {client_playlist_position}. '
+                'Skipping this sync...'
+            )
+        else:
+            if client_playlist_position != server_playlist_position:
+                self.print_debug(
+                    f'Server playlist {server_playlist_position} is different to '
+                    f'client {client_playlist_position}, syncing now...'
+                )
+                self.vlc['list_player'].play_item_at_index(server_playlist_position)
+                client_time = self.get_current_time()
+                client_playlist_position = server_playlist_position
+                self.print_debug(
+                    f'Client now at: {client_playlist_position}/{client_time}'
+                )
+
+    def sync_playback(self, server_time, client_time):
+        """
+        Sync playback position between server and client if necessary.
+        """
+        if abs(client_time - server_time) > int(SYNC_DRIFT_THRESHOLD):
+            sync = True
+            target_time = server_time + int(SYNC_LATENCY)
+            video_length = int(self.vlc['player'].get_length())
+            # Avoid syncing when the video length is zero
+            if video_length != 0:
+                video_time_remaining = video_length - target_time
+                self.print_debug(
+                    f'Drifted, syncing with server: {server_time} '
+                    f'plus sync latency of {SYNC_LATENCY}. '
+                    f'Target: {target_time}, video length: {video_length}'
+                )
+                if video_time_remaining < int(SYNC_IGNORE_THRESHOLD):
+                    sync = False
+                    self.print_debug(
+                        f'Only {video_time_remaining}/{video_length} remaining, '
+                        f'(threashold {SYNC_IGNORE_THRESHOLD}) so ignoring sync...'
+                    )
+                if target_time > video_length:
+                    sync = False
+                    self.print_debug(
+                        f'Target time {target_time} is greater than the length '
+                        f'of this video: {video_length}, ignoring sync...'
+                    )
+                if sync:
+                    self.vlc['player'].set_time(target_time)
 
 
 if __name__ == "__main__":

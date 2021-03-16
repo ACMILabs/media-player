@@ -76,15 +76,14 @@ class Client:  # pylint: disable=R0903
 
     def receive(self):
         """
-        Receives data and tries to parse it into an integer containing
-        the time of the server player in milliseconds.
+        Receives data and tries to parse it into a list of integers containing
+        the current playlist position, and time of the server player in milliseconds.
         """
         try:
             data = self.sock.recv(4096)
             if data:
-                data = data.decode()
-                pos = data.split(',')[-2]
-                return int(pos)
+                data = data.decode().split(',')
+                return [int(data[-3]), int(data[-2])]
             print(f'No data received... {data}')
             return None
         except OSError:

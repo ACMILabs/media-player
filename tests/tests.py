@@ -56,7 +56,8 @@ def test_media_player():
     media_player = MediaPlayer()
     assert media_player.playlist == []
     assert len(media_player.vlc) == 4
-    assert all([vlc_var is not None for vlc_var in media_player.vlc.values()])
+    for vlc_var in media_player.vlc.values():
+        assert vlc_var is not None
 
 
 @patch('requests.get', MagicMock(side_effect=mocked_requests_get))
