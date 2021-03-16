@@ -90,9 +90,6 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         # Holds the last clock time when VLC was asked for play time.
         self.time_at_last_poll = 0
 
-        # Current playlist index being played
-        self.current_playlist_position = 0
-
         if IS_SYNCED_PLAYER:
             self.setup_sync()
 
@@ -210,7 +207,6 @@ class MediaPlayer():  # pylint: disable=too-many-branches
             stats = vlc.MediaStats()
             media.get_stats(stats)
             playlist_position = self.vlc['playlist'].index_of_item(media)
-            self.current_playlist_position = playlist_position
             try:
                 label_id = self.playlist[playlist_position]['label']['id']
             except TypeError:
@@ -605,36 +601,44 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         if SYNC_IS_SERVER:
             while True:
                 time.sleep(1)
-                current_playlist_position = (
-                    self.get_current_playlist_position() or self.current_playlist_position
-                )
-                self.server.send(f'{current_playlist_position},{self.get_current_time()}')
-                self.print_debug(f'Clients: {self.server.clients}')
+                current_playlist_position = self.get_current_playlist_position()
+                if current_playlist_position is None:
+                    self.print_debug(
+                        f'Failed to get current playlist position: {current_playlist_position}. '
+                        'Skipping this sync...'
+                    )
+                else:
+                    self.server.send(f'{current_playlist_position},{self.get_current_time()}')
+                    self.print_debug(f'Clients: {self.server.clients}')
 
     def sync_playlist(self, server_playlist_position, server_time, client_time):
         """
         Sync playlists between server and client if necessary.
         """
-        client_playlist_position = (
-            self.get_current_playlist_position() or self.current_playlist_position
-        )
+        client_playlist_position = self.get_current_playlist_position()
         self.print_debug(
             f'Server playlist/time: {server_playlist_position}/{server_time}, '
             f'client playlist/time: {client_playlist_position}/{client_time}, '
             f'drift: {abs(client_time - server_time)}'
         )
 
-        if client_playlist_position != server_playlist_position:
+        if client_playlist_position is None:
             self.print_debug(
-                f'Server playlist {server_playlist_position} is different to '
-                f'client {client_playlist_position}, syncing now...'
+                f'Failed to get current playlist position: {client_playlist_position}. '
+                'Skipping this sync...'
             )
-            self.vlc['list_player'].play_item_at_index(server_playlist_position)
-            client_time = self.get_current_time()
-            client_playlist_position = server_playlist_position
-            self.print_debug(
-                f'Client now at: {client_playlist_position}/{client_time}'
-            )
+        else:
+            if client_playlist_position != server_playlist_position:
+                self.print_debug(
+                    f'Server playlist {server_playlist_position} is different to '
+                    f'client {client_playlist_position}, syncing now...'
+                )
+                self.vlc['list_player'].play_item_at_index(server_playlist_position)
+                client_time = self.get_current_time()
+                client_playlist_position = server_playlist_position
+                self.print_debug(
+                    f'Client now at: {client_playlist_position}/{client_time}'
+                )
 
     def sync_playback(self, server_time, client_time):
         """
