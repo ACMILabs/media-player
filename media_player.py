@@ -560,6 +560,21 @@ class MediaPlayer():  # pylint: disable=too-many-branches
         while True:
             self.get_current_time()
 
+    def sync_check(self):
+        """
+        Determine whether we should try and setup the sync again.
+        """
+        self.client.sync_attempts += 1
+        if self.client.sync_attempts > 3:
+            self.print_debug('No server_time received, attempting to re-setup sync...')
+            self.setup_sync()
+            self.print_debug(f'Sync attempts reset to: {self.client.sync_attempts}')
+        else:
+            self.print_debug(
+                'No server_time received, sync_attempts: '
+                f'{self.client.sync_attempts}'
+            )
+
     def sync_to_server(self):
         """
         For client players, look for data from the server, check if syncing is needed and sync.
@@ -571,32 +586,24 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                 try:
                     server_playlist_position = server_state[0]
                     server_time = server_state[1]
+                    if server_time:
+                        self.client.sync_attempts = 0
+                    else:
+                        self.sync_check()
+                        continue
+
+                    client_time = self.get_current_time()
+                    if server_time == 0 or client_time == 0:
+                        # Avoid syncing at the beginning of videos
+                        continue
+
+                    self.sync_playlist(server_playlist_position, server_time, client_time)
+                    self.sync_playback(server_time, client_time)
+
                 except (IndexError, TypeError) as exception:
                     print(f'Unexpected server_state data: {server_state}, exception: {exception}')
+                    self.sync_check()
                     continue
-                if server_time:
-                    self.client.sync_attempts = 0
-                else:
-                    self.client.sync_attempts += 1
-                    if self.client.sync_attempts > 3:
-                        self.print_debug('No server_time received, attempting to re-setup sync...')
-                        self.setup_sync()
-                        self.print_debug(f'Sync attempts reset to: {self.client.sync_attempts}')
-                    else:
-                        self.print_debug(
-                            'No server_time received, sync_attempts: '
-                            f'{self.client.sync_attempts}'
-                        )
-                    continue
-
-                client_time = self.get_current_time()
-                if server_time == 0 or client_time == 0:
-                    # Avoid syncing at the beginning of videos
-                    continue
-
-                self.sync_playlist(server_playlist_position, server_time, client_time)
-
-                self.sync_playback(server_time, client_time)
 
         if SYNC_IS_SERVER:
             while True:
