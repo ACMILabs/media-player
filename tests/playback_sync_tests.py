@@ -195,3 +195,43 @@ def test_client_playlist_position_set_without_drift():
             'vlc.MediaListPlayer.play_item_at_index',
             player.sync_to_server
         )
+
+
+@patch('media_player.network.Client', MagicMock())
+@patch('media_player.SYNC_CLIENT_TO', '100.100.100.100')
+@patch('media_player.IS_SYNCED_PLAYER', True)
+def test_sync_check():
+    """
+    Test that setup_sync is called as expected in sync_check.
+    """
+    player = MediaPlayer()
+    with patch.object(MediaPlayer, 'setup_sync', wraps=player.setup_sync) as mock_setup_sync:
+        player.client.sync_attempts = 1
+        player.sync_check()
+        assert mock_setup_sync.call_count == 0
+        player.client.sync_attempts = 4
+        player.sync_check()
+        assert mock_setup_sync.call_count == 1
+
+
+@patch('media_player.network.Client', MagicMock())
+@patch('media_player.SYNC_CLIENT_TO', '100.100.100.100')
+@patch('media_player.IS_SYNCED_PLAYER', True)
+def test_sync_to_server():
+    """
+    Test that sync_to_server successfully resyncs for exceptions.
+    """
+    player = MediaPlayer()
+    player.client.receive = MagicMock(return_value=None)
+    player.client.sync_attempts = 1
+    assert_called_in_infinite_loop(
+        'media_player.MediaPlayer.sync_check',
+        player.sync_to_server,
+    )
+
+    player.client.receive = MagicMock(return_value=[0, 0])
+    player.client.sync_attempts = 1
+    assert_called_in_infinite_loop(
+        'media_player.MediaPlayer.sync_check',
+        player.sync_to_server,
+    )
