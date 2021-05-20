@@ -88,7 +88,7 @@ class Client:  # pylint: disable=R0903
             return None
         except OSError:
             print(f'Closing socket: {self.sock}')
-            self.sock.shutdown()
+            self.sock.shutdown(socket.SHUT_RD)
             self.sock.close()
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print('Attempting to reconnect...')
