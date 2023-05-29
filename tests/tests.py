@@ -20,7 +20,7 @@ def file_to_string_strip_new_lines(filename):
     file_as_string = ""
 
     # open filename assuming filename is relative to current working directory
-    with open(os.path.join(cwd, filename), 'r') as file_obj:
+    with open(os.path.join(cwd, filename), 'r', encoding='utf-8') as file_obj:
         # strip new line characters
         file_as_string = file_obj.read().replace('\n', '')
     # return string
@@ -54,7 +54,7 @@ def test_media_player():
     """
 
     media_player = MediaPlayer()
-    assert media_player.playlist == []
+    assert not media_player.playlist
     assert len(media_player.vlc) == 4
     for vlc_var in media_player.vlc.values():
         assert vlc_var is not None
@@ -137,7 +137,7 @@ def test_get_media_player_status():
     media_player.vlc['playlist'] = mock_vlc_playlist
     status_two = media_player.get_media_player_status()
 
-    assert 'datetime' in status.keys()
+    assert 'datetime' in status
     assert status['playlist_position'] == 1
     assert status['label_id'] == 456
     assert status_two['label_id'] is None

@@ -68,7 +68,7 @@ CACHED_PLAYLIST_JSON = '/data/cached_playlist.json'
 APLAY_REGEX = re.compile(r'card (?P<card_id>\d+): (.+), device (?P<device_id>\d+): (.+)')
 
 
-class MediaPlayer():  # pylint: disable=too-many-branches
+class MediaPlayer():  # pylint: disable=too-many-branches,too-many-instance-attributes
     """
     A media player that communicates with XOS to download resources
     and update the message broker with its playback status.
@@ -308,7 +308,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
             json_data = {
                 'serviceName': BALENA_SERVICE_NAME
             }
-            response = requests.post(balena_api_url, json=json_data)
+            response = requests.post(balena_api_url, json=json_data, timeout=60)
             response.raise_for_status()
         except (
                 requests.exceptions.HTTPError,
@@ -431,7 +431,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
                 if not os.path.exists(RESOURCES_PATH):
                     os.makedirs(RESOURCES_PATH)
 
-                with requests.get(url, stream=True) as response:
+                with requests.get(url, stream=True, timeout=60) as response:
                     response.raise_for_status()
                     with open(RESOURCES_PATH + local_filename, 'wb') as open_file:
                         for chunk in response.iter_content(chunk_size=8192):
@@ -502,7 +502,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches
             self.vlc['list_player'].set_media_list(self.vlc['playlist'])
 
             # cache playlist
-            with open(CACHED_PLAYLIST_JSON, 'w') as outfile:
+            with open(CACHED_PLAYLIST_JSON, 'w', encoding='utf-8') as outfile:
                 json.dump(playlist_json_data, outfile)
 
         except (

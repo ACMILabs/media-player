@@ -43,7 +43,7 @@ class Server:
         """
         Sends the time in milliseconds (int) to the set of registered clients.
         """
-        data = '{},'.format(data).encode()
+        data = f'{data},'.encode()
 
         try:
             for client in self.clients:
