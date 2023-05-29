@@ -12,7 +12,8 @@ import pytz
 import requests
 import sentry_sdk
 import vlc
-from kombu import Connection, Exchange, Queue
+from kombu import Connection
+from kombu.entity import Exchange, Queue
 
 import network
 import status_client
