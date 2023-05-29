@@ -5,3 +5,4 @@ python-vlc
 sentry-sdk
 pyalsaaudio
 prometheus_client
+importlib-metadata==4.13.0
