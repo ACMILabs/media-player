@@ -52,6 +52,11 @@ xset s off -dpms
 # Hide the cursor
 unclutter -idle 0.1 &
 
+# Start the first boot checker
+if [ -z "$DISABLE_FIRST_BOOT_CHECK" ]; then
+  ./scripts/first_boot.sh
+fi
+
 # Set X background image
 xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/workspace0/last-image --set /code/resources/blank-1920x1080.png
 
