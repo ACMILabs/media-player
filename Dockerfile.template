@@ -24,7 +24,7 @@ RUN install_packages \
   # Intel GPU drivers for VLC
   i965-va-driver \
   vainfo \
-  vdpau-va-driver \
+  mesa-va-drivers \
   # Parse JSON for boot count
   jq
 
