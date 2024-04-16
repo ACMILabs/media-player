@@ -16,7 +16,9 @@ RUN install_packages vlc g++ python3-pip python3-setuptools python3-dev build-es
   # Audio
   alsa-utils \
   # Remove cursor
-  unclutter
+  unclutter \
+  # Parse JSON for boot count
+  jq
 
 # disable lxpolkit popup warning
 RUN mv /usr/bin/lxpolkit /usr/bin/lxpolkit.bak

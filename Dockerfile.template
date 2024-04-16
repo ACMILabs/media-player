@@ -24,7 +24,9 @@ RUN install_packages \
   # Intel GPU drivers for VLC
   i965-va-driver \
   vainfo \
-  vdpau-va-driver
+  vdpau-va-driver \
+  # Parse JSON for boot count
+  jq
 
 # Disable screen from turning it off
 RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
