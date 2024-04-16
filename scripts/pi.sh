@@ -48,6 +48,11 @@ xset s off -dpms
 # Hide the cursor
 unclutter -idle 0.1 &
 
+# Start the first boot checker
+if [ -z "$DISABLE_FIRST_BOOT_CHECK" ]; then
+  ./scripts/first_boot.sh
+fi
+
 # rotate screen if env variable is set [normal, inverted, left or right]
 if [[ ! -z "$ROTATE_DISPLAY" ]]; then
   echo "Rotating display: ${ROTATE_DISPLAY}"
