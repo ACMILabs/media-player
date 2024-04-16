@@ -5,7 +5,7 @@ FROM balenalib/raspberrypi3:buster
 
 # use `install_packages` if you need to install dependencies,
 # for instance if you need git, just uncomment the line below.
-RUN install_packages vlc vlc-plugin-* g++ python3-pip python3-setuptools python3-dev build-essential \
+RUN install_packages vlc g++ python3-pip python3-setuptools python3-dev build-essential \
   xserver-xorg-core \
   xinit lxsession desktop-file-utils \
   raspberrypi-ui-mods rpd-icons \

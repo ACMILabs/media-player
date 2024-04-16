@@ -6,7 +6,6 @@ FROM balenalib/%%BALENA_ARCH%%-ubuntu-python:3.8-latest-run
 # for instance if you need git, just uncomment the line below.
 RUN install_packages \
   vlc \
-  vlc-plugin-* \
   g++ \
   xserver-xorg-video-intel \
   xserver-xorg-input-evdev \
