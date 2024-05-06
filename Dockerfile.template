@@ -25,6 +25,8 @@ RUN install_packages \
   i965-va-driver \
   vainfo \
   mesa-va-drivers \
+  # Avoid org.a11y.Bus error
+  at-spi2-core \
   # Parse JSON for boot count
   jq
 
