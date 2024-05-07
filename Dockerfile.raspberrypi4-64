@@ -18,7 +18,11 @@ RUN install_packages vlc g++ python3-pip python3-setuptools python3-dev build-es
   # Remove cursor
   unclutter \
   # Parse JSON for boot count
-  jq
+  jq \
+  # Display drivers to avoid VLC errors
+  mesa-vdpau-drivers \
+  vdpau-va-driver \
+  libvdpau1
 
 # disable lxpolkit popup warning
 RUN mv /usr/bin/lxpolkit /usr/bin/lxpolkit.bak
