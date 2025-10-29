@@ -5,4 +5,5 @@ python-vlc
 sentry-sdk
 pyalsaaudio
 prometheus_client
-importlib-metadata==4.13.0
+# Only install the backport on old Pythons:
+importlib-metadata==4.13.0 ; python_version < "3.10"

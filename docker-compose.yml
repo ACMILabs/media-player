@@ -1,0 +1,19 @@
+version: "2"
+
+services:
+  main:
+    build:
+        context: .
+        dockerfile: Dockerfile.raspberrypi5-64
+    privileged: true
+    devices:
+      - "/dev/dri:/dev/dri"
+    labels:
+      io.balena.features.dbus: '1'
+      io.balena.features.supervisor-api: '1'
+      io.balena.features.kernel-modules: '1'
+      io.balena.features.firmware: '1'
+      io.balena.features.sysfs: '1'
+    environment:
+      - UDEV=1
+      - DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
