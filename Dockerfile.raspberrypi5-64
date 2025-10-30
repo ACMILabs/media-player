@@ -20,7 +20,7 @@ RUN install_packages \
 # Openbox window manager
 RUN install_packages openbox
 
-# Add near your other apt steps, before cleaning
+# Add mpv for video playback if we can't get vlc to hardware decode 4k
 RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' > /etc/apt/sources.list.d/backports.list \
  && apt-get update \
  && apt-get -y -t bookworm-backports install \
@@ -75,11 +75,11 @@ RUN printf '%s\n' \
   'exec /usr/lib/xorg/Xorg -s 0 +dpms -dpms -nolisten tcp "$@"' \
   > /etc/X11/xinit/xserverrc && chmod +x /etc/X11/xinit/xserverrc
 
-# Enable udev (balena best practice for hotplug devices)
-ENV UDEV=1
+# Enable udevd so that plugged dynamic hardware devices show up in our container.
+ENV UDEV 1
 
-# Use host DBus (needed by some desktop/audio bits and your script)
-ENV DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
+# Set dbus environment variables
+ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 
 # Add venv tooling
 RUN install_packages python3-venv
@@ -91,21 +91,18 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH" \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
 
-# Python deps
 COPY ./requirements/base.txt /code/requirements/base.txt
 COPY ./requirements/prod.txt /code/requirements/prod.txt
 RUN pip3 install -Ur /code/requirements/prod.txt
 
-# App code
 COPY . /code/
 WORKDIR /code/
 
-# Fonts (keep your custom fonts)
 COPY ./resources/FaktPro-Normal.otf       /usr/share/fonts/truetype/freefont/FaktPro-Normal.otf
 COPY ./resources/FaktPro-NormalItalic.otf /usr/share/fonts/truetype/freefont/FaktPro-NormalItalic.otf
 COPY ./resources/FaktPro-Bold.otf         /usr/share/fonts/truetype/freefont/FaktPro-Bold.otf
 COPY ./resources/FaktPro-BoldItalic.otf   /usr/share/fonts/truetype/freefont/FaktPro-BoldItalic.otf
 RUN fc-cache -f
 
-# Your start script (unchanged filename; see earlier message for Pi 5–safe content)
+# main.py will run when container starts up on the device
 CMD ["bash","scripts/pi.sh"]

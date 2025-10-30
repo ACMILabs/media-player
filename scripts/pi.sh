@@ -1,14 +1,23 @@
 #!/bin/bash
 set -euo pipefail
 
-sed -i 's/geteuid/getppid/' /usr/bin/vlc || true
-rm -f /tmp/.X0-lock
+# Allow VLC to run under root
+sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
-export DISPLAY=":0"
-export XAUTHLOCALHOSTNAME="localhost"
+# Remove the X server lock file so ours starts cleanly
+rm /tmp/.X0-lock &>/dev/null || true
+
+# Set the display to use
+export DISPLAY=:0
+
+# Set the DBUS address for sending around system messages
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
+
+# Set XDG_RUNTIME_DIR
 export XDG_RUNTIME_DIR="/run/user/0"
 mkdir -p "${XDG_RUNTIME_DIR}"; chmod 700 "${XDG_RUNTIME_DIR}"
+
+# Create Xauthority
 touch /root/.Xauthority
 
 # optional (Qt apps)
@@ -46,20 +55,33 @@ if ! xdpyinfo -display "${DISPLAY}" >/dev/null 2>&1; then
   # exit 1
 fi
 
+# Print all of the current displays used by running processes
 echo "Displays in use after starting X"
-echo "DISPLAY=${DISPLAY}"
+DISPLAYS=`ps -u $(id -u) -o pid= | \
+  while read pid; do
+    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+  done | sort -u`
+echo $DISPLAYS
+
+# Always set display to last display
+LAST_DISPLAY=`ps -u $(id -u) -o pid= | \
+  while read pid; do
+    cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep '^DISPLAY=:'
+  done | sort -u | tail -n1`
+echo "Setting display to: ${LAST_DISPLAY}"
+export $LAST_DISPLAY
 
 # no blanking / no DPMS; hide cursor
 xset -display "${DISPLAY}" s off -dpms s noblank
 unclutter -display "${DISPLAY}" -idle 0.1 &
 
-# rotate if requested
+# rotate screen if env variable is set [normal, inverted, left or right]
 if [[ -n "${ROTATE_DISPLAY:-}" ]]; then
   echo "Rotating display: ${ROTATE_DISPLAY}"
-  (sleep 2 && xrandr -display "${DISPLAY}" -o "${ROTATE_DISPLAY}") &
+  (sleep 3 && xrandr -display "${DISPLAY}" -o "${ROTATE_DISPLAY}") &
 fi
 
-# set or detect resolution
+# Set or parse screen resolution
 if [[ -n "${SCREEN_WIDTH:-}" && -n "${SCREEN_HEIGHT:-}" && -n "${FRAMES_PER_SECOND:-}" ]]; then
   echo "Setting screen to: ${SCREEN_WIDTH}x${SCREEN_HEIGHT} @${FRAMES_PER_SECOND}"
   xrandr -display "${DISPLAY}" -s "${SCREEN_WIDTH}x${SCREEN_HEIGHT}" -r "${FRAMES_PER_SECOND}" || true
@@ -73,6 +95,7 @@ else
   echo "Screen resolution parsed as: ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
 fi
 
+# If DISPLAY, SCREEN_WIDTH or SCREEN_HEIGHT still isn't set, restart the mediaplayer container
 if [[ -z "${DISPLAY}" || -z "${SCREEN_WIDTH}" || -z "${SCREEN_HEIGHT}" ]]; then
   echo "ERROR: DISPLAY/SCREEN_WIDTH/SCREEN_HEIGHT not set; restarting service."
   for i in {1..3}; do
@@ -84,5 +107,8 @@ if [[ -z "${DISPLAY}" || -z "${SCREEN_WIDTH}" || -z "${SCREEN_HEIGHT}" ]]; then
   done
   exit 1
 fi
+
+# Unmute system audio
+# ./scripts/unmute.sh
 
 exec python3 media_player.py
