@@ -53,10 +53,10 @@ We use small-form-factor PCs such as Dell Optiplex Micro or Intel NUC in places 
 ## Installation on developer machine
 
 * Clone this repository.
-* Build the development container `$ cd development` and `$ docker-compose up --build`
+* Build the development container `$ cd development` and `$ docker compose up --build`
 * `cp dev.tmpl.env dev.env`
 * Edit the `dev.env` with any required values (a default playlist will be used otherwise)
-* Run `cd development && docker-compose up`
+* Run `cd development && docker compose up`
 
 ### Rebuild the development base image
 
