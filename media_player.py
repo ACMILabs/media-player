@@ -215,7 +215,7 @@ class MediaPlayer():  # pylint: disable=too-many-branches,too-many-instance-attr
                 label_id = None
             try:
                 system_volume = str(alsaaudio.Mixer(alsaaudio.mixers()[0]).getvolume()[0] / 10)
-            except alsaaudio.ALSAAudioError:
+            except (alsaaudio.ALSAAudioError, IndexError):
                 system_volume = 0
             media_player_status = {
                 'datetime': self.datetime_now(),
