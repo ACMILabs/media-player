@@ -121,9 +121,6 @@ class MediaPlayer():  # pylint: disable=too-many-branches,too-many-instance-attr
                              f'resolution to: {SCREEN_WIDTH}x{SCREEN_HEIGHT}')
             flags.append(f'--width={SCREEN_WIDTH}')
             flags.append(f'--height={SCREEN_HEIGHT}')
-
-        extra = os.getenv('VLC_ARGS', '').split()
-        flags.extend([f for f in extra if f])
         self.vlc['instance'] = vlc.Instance(flags)
         self.vlc['list_player'] = self.vlc['instance'].media_list_player_new()
         self.vlc['player'] = self.vlc['list_player'].get_media_player()

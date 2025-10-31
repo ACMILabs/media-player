@@ -1,29 +1,85 @@
 # Raspberry Pi 5 (ARM64) + Debian Bookworm runtime base
-# Raspberry Pi 5 (aarch64) + Debian Bookworm runtime base
 FROM balenalib/raspberrypi5-debian:bookworm-run
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHONUNBUFFERED=1 \
-    XDG_RUNTIME_DIR=/run/user/0 \
-    # Hint VLC/FFmpeg to prefer HW accel on DRM/Wayland
-    VLC_HW_ARGS="--codec=avcodec --avcodec-hw=drm --no-video-title-show --fullscreen --vout=wayland,drm"
+ENV DEBIAN_FRONTEND=noninteractive
 
-# System deps: weston (Wayland compositor), seatd (device access), VLC, ALSA, fonts for subtitles
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      weston seatd \
-      vlc python3 python3-pip python3-gi \
-      libasound2-dev alsa-utils \
-      libgl1-mesa-dri libegl1 libgles2 libgbm1 libdrm2 libwayland-egl1 \
-      ca-certificates fonts-dejavu \
-      g++ python3-pip python3-setuptools python3-dev build-essential \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Core runtime + Xorg (modesetting/KMS), tools, VLC, audio, unclutter
+# - xserver-xorg on bookworm provides the modesetting driver
+# - purge fbdev to avoid the "framebuffer mode / busIDs" error
+RUN install_packages \
+    xserver-xorg xserver-xorg-core xinit x11-xserver-utils x11-utils x11-xkb-utils \
+    mesa-utils mesa-vulkan-drivers \
+    vlc vlc-plugin-base \
+    g++ python3-pip python3-setuptools python3-dev build-essential \
+    libasound2-dev alsa-utils \
+    dbus \
+    unclutter \
+    fonts-dejavu \
+ && apt-get purge -y xserver-xorg-video-fbdev || true
 
-# Minimal Weston config (optional but keeps logs clean)
-RUN mkdir -p /root/.config && \
-    printf "[core]\nbackend=drm-backend.so\nidle-time=0\n\n[shell]\nlocking=false\n" > /root/.config/weston.ini
+# Openbox window manager
+RUN install_packages openbox
 
-# Ensure runtime dir exists for Wayland socket
-RUN mkdir -p /run/user/0
+# Add mpv for video playback if we can't get vlc to hardware decode 4k
+RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' > /etc/apt/sources.list.d/backports.list \
+ && apt-get update \
+ && apt-get -y -t bookworm-backports install \
+      libgl1-mesa-dri libglx-mesa0 libegl1-mesa libgbm1 mesa-vulkan-drivers mpv ffmpeg libmpv2 libmpv-dev \
+ && ldconfig \
+ && apt-get clean
+
+# Force Xorg to use the KMS/DRM modesetting driver (not fbdev)
+RUN mkdir -p /etc/X11/xorg.conf.d && \
+    printf '%s\n' \
+    'Section "Device"' \
+    '  Identifier "Modesetting0"' \
+    '  Driver "modesetting"' \
+    '  Option "AccelMethod" "glamor"' \
+    '  Option "DRI" "3"' \
+    'EndSection' \
+    > /etc/X11/xorg.conf.d/10-modesetting.conf
+
+# Force X to modesetting on the VC4 KMS node and disable GPU auto-probing
+RUN printf '%s\n' \
+'Section "ServerFlags"' \
+'  Option "AutoAddGPU" "false"' \
+'EndSection' \
+'' \
+'Section "Device"' \
+'  Identifier "GPU0"' \
+'  Driver "modesetting"' \
+'  Option "kmsdev" "/dev/dri/card0"' \
+'  Option "PrimaryGPU" "true"' \
+'  Option "AccelMethod" "glamor"' \
+'  Option "DRI" "3"' \
+'EndSection' \
+'' \
+'Section "Screen"' \
+'  Identifier "Screen0"' \
+'  Device "GPU0"' \
+'  DefaultDepth 24' \
+'  SubSection "Display"' \
+'    Depth 24' \
+'  EndSubSection' \
+'EndSection' \
+'' \
+'Section "ServerLayout"' \
+'  Identifier "Layout0"' \
+'  Screen "Screen0"' \
+'EndSection' \
+> /etc/X11/xorg.conf
+
+# Disable DPMS / screen blanking when X starts
+RUN printf '%s\n' \
+  '#!/bin/sh' \
+  'exec /usr/lib/xorg/Xorg -s 0 +dpms -dpms -nolisten tcp "$@"' \
+  > /etc/X11/xinit/xserverrc && chmod +x /etc/X11/xinit/xserverrc
+
+# Enable udevd so that plugged dynamic hardware devices show up in our container.
+ENV UDEV 1
+
+# Set dbus environment variables
+ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 
 # Add venv tooling
 RUN install_packages python3-venv
