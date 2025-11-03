@@ -269,12 +269,15 @@ class MediaPlayer():  # pylint: disable=too-many-branches,too-many-instance-attr
                 )
 
                 # Publish to XOS broker
-                with Connection(AMQP_URL) as conn:
-                    producer = conn.Producer(serializer='json')
-                    producer.publish(media_player_status,
-                                     exchange=MEDIA_PLAYER_EXCHANGE,
-                                     routing_key=ROUTING_KEY,
-                                     declare=[PLAYBACK_QUEUE])
+                if AMQP_URL:
+                    with Connection(AMQP_URL) as conn:
+                        producer = conn.Producer(serializer='json')
+                        producer.publish(
+                            media_player_status,
+                            exchange=MEDIA_PLAYER_EXCHANGE,
+                            routing_key=ROUTING_KEY,
+                            declare=[PLAYBACK_QUEUE],
+                        )
 
             except KeyError as error:
                 vlc_connection_attempts += 1
