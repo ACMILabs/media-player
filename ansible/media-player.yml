@@ -1,5 +1,5 @@
 ---
-- name: media-player setup on Ubuntu
+- name: media-player setup on RaspberryPiOS
   hosts: media_player
   gather_facts: yes
   vars:
@@ -100,6 +100,15 @@
   # --------------------------------------------------
   # Create /data/resources directory and set permissions for pi user
   # --------------------------------------------------
+  - name: Ensure /data is owned by pi user
+    become: yes
+    file:
+      path: /data
+      state: directory
+      owner: pi
+      group: pi
+      mode: '0755'
+
   - name: Create /data/resources directory and set permissions for pi user
     become: yes
     file:
@@ -128,15 +137,23 @@
       line: 'autohide=1'
       state: present
 
-  # - name: Copy media-player.service to ~/.config/systemd/user/
-  #   become: no
-  #   copy:
-  #     src: "{{ repo_path }}/media-player.service"
-  #     dest: "{{ ansible_env.HOME }}/.config/systemd/user/media-player.service"
+  - name: Ensure ~/.config/systemd/user directory exists
+    become: no
+    file:
+      path: "{{ ansible_env.HOME }}/.config/systemd/user"
+      state: directory
+      mode: '0755'
 
-  # - name: Enable media-player service
-  #   become: no
-  #   command: systemctl --user enable media-player.service
+  - name: Copy media-player.service to ~/.config/systemd/user/
+    become: no
+    copy:
+      src: "{{ repo_path }}/media-player.service"
+      dest: "{{ ansible_env.HOME }}/.config/systemd/user/media-player.service"
+      remote_src: yes
+
+  - name: Enable media-player service
+    become: no
+    command: systemctl --user enable media-player.service
 
   # --------------------------------------------------
   # Daily reboot at 8AM Melbourne time

@@ -26,8 +26,8 @@ AUDIO_DEVICE_REGEX = re.compile(os.getenv('AUDIO_DEVICE_REGEX', ''), flags=re.IG
 DOWNLOAD_RETRIES = int(os.getenv('DOWNLOAD_RETRIES', '3'))
 AMQP_URL = os.getenv('AMQP_URL')
 TIME_BETWEEN_PLAYBACK_STATUS = os.getenv('TIME_BETWEEN_PLAYBACK_STATUS', '0.1')
-DEVICE_NAME = os.getenv('BALENA_DEVICE_NAME_AT_INIT')
-DEVICE_UUID = os.getenv('BALENA_DEVICE_UUID')
+DEVICE_NAME = os.getenv('BALENA_DEVICE_NAME_AT_INIT', f'mp-{XOS_MEDIA_PLAYER_ID}')
+DEVICE_UUID = os.getenv('BALENA_DEVICE_UUID', XOS_MEDIA_PLAYER_ID)
 BALENA_APP_ID = os.getenv('BALENA_APP_ID')
 BALENA_SERVICE_NAME = os.getenv('BALENA_SERVICE_NAME')
 BALENA_SUPERVISOR_ADDRESS = os.getenv('BALENA_SUPERVISOR_ADDRESS')
@@ -303,6 +303,8 @@ class MediaPlayer():  # pylint: disable=too-many-branches,too-many-instance-attr
         """
         Posts to the Balena supervisor to restart the media player service.
         """
+        if not BALENA_SUPERVISOR_ADDRESS:
+            return
         try:
             balena_api_url = f'{BALENA_SUPERVISOR_ADDRESS}/v2/applications/{BALENA_APP_ID}/'\
                              f'restart-service?apikey={BALENA_SUPERVISOR_API_KEY}'
