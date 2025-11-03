@@ -1,0 +1,118 @@
+---
+- name: media-player setup on Ubuntu
+  hosts: media_player
+  gather_facts: yes
+  vars:
+    repo_path: "{{ ansible_env.HOME }}/Code/media-player"
+
+  tasks:
+  # --------------------------------------------------
+  # OS packages
+  # --------------------------------------------------
+  - name: Ensure required APT packages are present
+    become: yes
+    apt:
+      update_cache: yes
+      state: present
+      name:
+        - git
+        - curl
+        - build-essential
+        - python3-pip
+        - python3-setuptools
+        - python3-dev
+        - direnv
+        - libasound2-dev
+        - alsa-utils
+        - vim
+        - screen
+
+  - name: Add direnv hook to ~/.bashrc
+    become: no
+    lineinfile:
+      path: "{{ ansible_env.HOME }}/.bashrc"
+      line: 'eval "$(direnv hook bash)"'
+      state: present
+      insertafter: EOF
+      create: yes
+
+  # --------------------------------------------------
+  # Clone repo
+  # --------------------------------------------------
+  - name: Make ~/Code directory if absent
+    file:
+      path: "{{ ansible_env.HOME }}/Code"
+      state: directory
+      mode: '0755'
+
+  - name: Tell git to use the token for all GitHub HTTPS URLs
+    become: no
+    git_config:
+      scope: global
+      name: 'url.https://{{ github_token }}:x-oauth-basic@github.com/.insteadOf'
+      value: 'https://github.com/'
+    no_log: true
+
+  - name: Clone media-player (branch main)
+    become: no
+    git:
+      repo: "https://{{ github_token }}@github.com/ACMILabs/media-player.git"
+      dest: "{{ repo_path }}"
+      version: main
+      force: yes
+      update: yes
+      recursive: yes
+
+  # --------------------------------------------------
+  # Python venv + pip installs
+  # --------------------------------------------------
+  - name: Create Python virtualenv
+    become: no
+    command: python3 -m venv venv
+    args:
+      chdir: "{{ repo_path }}"
+
+  - name: Install requirements.txt inside venv
+    become: no
+    shell: |
+      source venv/bin/activate
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    args:
+      chdir: "{{ repo_path }}"
+      executable: /bin/bash
+
+  - name: Disable RaspberryPiOS Dock extension so it doesn't show when changing windows
+    become: no
+    shell: |
+      gnome-extensions disable raspberrypi-dock@raspberrypi.com
+
+  - name: Copy media-player.service to ~/.config/systemd/user/
+    become: no
+    copy:
+      src: "{{ repo_path }}/media-player.service"
+      dest: "{{ ansible_env.HOME }}/.config/systemd/user/media-player.service"
+
+  - name: Enable media-player service
+    become: no
+    command: systemctl --user enable media-player.service
+
+  # --------------------------------------------------
+  # Daily reboot at 8AM Melbourne time
+  # --------------------------------------------------
+  - name: Ensure system timezone is set to Australia/Melbourne
+    become: yes
+    timezone:
+      name: Australia/Melbourne
+    tags: reboot_cron
+
+  - name: Add cron job to reboot every morning at 8AM
+    become: yes
+    cron:
+      name: "Daily reboot at 8AM Melbourne time"
+      user: root
+      minute: "0"
+      hour: "8"
+      job: "/sbin/shutdown -r now"
+      state: present
+    tags: reboot_cron
