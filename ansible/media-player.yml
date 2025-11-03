@@ -182,3 +182,11 @@
       job: "/sbin/shutdown -r now"
       state: present
     tags: reboot_cron
+
+  - name: Add cron job to restart media-player service on boot
+    become: no
+    cron:
+      name: "Restart media-player service on boot"
+      user: "{{ ansible_env.USER }}"
+      special_time: reboot
+      job: "systemctl --user restart media-player.service"
