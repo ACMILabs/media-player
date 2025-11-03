@@ -1,3 +1,5 @@
+import os
+
 from prometheus_client import Counter, Gauge, Info, start_http_server
 
 DEVICE_INFO = Info('device', 'Device')
@@ -11,6 +13,7 @@ DROPPED_AUDIO_FRAMES_GAUGE = Gauge('dropped_audio_frames', 'Dropped audio frames
 DROPPED_VIDEO_FRAMES_GAUGE = Gauge('dropped_video_frames', 'Dropped video frames')
 PLAYER_VOLUME_GAUGE = Gauge('player_volume', 'VLC volume')
 SYSTEM_VOLUME_GAUGE = Gauge('system_volume', 'System volume')
+PROMETHEUS_PORT = int(os.getenv("PROMETHEUS_PORT", "1007"))
 
 
 def set_status(
@@ -39,4 +42,4 @@ def set_status(
     SYSTEM_VOLUME_GAUGE.set(media_player_status['system_volume'])
 
 
-start_http_server(1007)
+start_http_server(PROMETHEUS_PORT)

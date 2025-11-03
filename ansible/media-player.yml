@@ -58,7 +58,7 @@
     git:
       repo: "https://{{ github_token }}@github.com/ACMILabs/media-player.git"
       dest: "{{ repo_path }}"
-      version: main
+      version: add/190-ansible
       force: yes
       update: yes
       recursive: yes
@@ -77,25 +77,66 @@
     shell: |
       source venv/bin/activate
       pip install --upgrade pip
-      pip install -r requirements.txt
+      pip install -r requirements/prod.txt
     args:
       chdir: "{{ repo_path }}"
       executable: /bin/bash
 
-  - name: Disable RaspberryPiOS Dock extension so it doesn't show when changing windows
-    become: no
-    shell: |
-      gnome-extensions disable raspberrypi-dock@raspberrypi.com
-
-  - name: Copy media-player.service to ~/.config/systemd/user/
+  # --------------------------------------------------
+  # Create config.env
+  # --------------------------------------------------
+  - name: Create config.env
     become: no
     copy:
-      src: "{{ repo_path }}/media-player.service"
-      dest: "{{ ansible_env.HOME }}/.config/systemd/user/media-player.service"
+      dest: "{{ repo_path }}/config.env"
+      content: |
+        export XOS_API_ENDPOINT="{{ xos_api_endpoint }}"
+        export XOS_PLAYLIST_ID="{{ xos_playlist_id }}"
+        export XOS_MEDIA_PLAYER_ID="{{ xos_media_player_id }}"
+        export AMQP_URL="{{ amqp_url }}"
+        export SENTRY_ID="{{ sentry_id }}"
+        export PROMETHEUS_PORT="{{ prometheus_port }}"
 
-  - name: Enable media-player service
-    become: no
-    command: systemctl --user enable media-player.service
+  # --------------------------------------------------
+  # Create /data/resources directory and set permissions for pi user
+  # --------------------------------------------------
+  - name: Create /data/resources directory and set permissions for pi user
+    become: yes
+    file:
+      path: /data/resources
+      state: directory
+      owner: pi
+      group: pi
+      mode: '0755'
+
+  # --------------------------------------------------
+  # RaspberryPiOS tweaks
+  # --------------------------------------------------
+  - name: Set RaspberryPiOS background to black
+    become: yes
+    lineinfile:
+      path: /etc/xdg/pcmanfm/default/desktop-items-0.conf
+      regexp: '^wallpaper='
+      line: 'wallpaper='
+      state: present
+
+  - name: Hide RaspberryPiOS menu bar
+    become: yes
+    lineinfile:
+      path: /etc/xdg/lxpanel-pi/panels/panel
+      regexp: '^autohide='
+      line: 'autohide=1'
+      state: present
+
+  # - name: Copy media-player.service to ~/.config/systemd/user/
+  #   become: no
+  #   copy:
+  #     src: "{{ repo_path }}/media-player.service"
+  #     dest: "{{ ansible_env.HOME }}/.config/systemd/user/media-player.service"
+
+  # - name: Enable media-player service
+  #   become: no
+  #   command: systemctl --user enable media-player.service
 
   # --------------------------------------------------
   # Daily reboot at 8AM Melbourne time
