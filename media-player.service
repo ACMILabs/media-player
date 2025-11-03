@@ -5,11 +5,10 @@ After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/pi/Code/media-player
-ExecStart=/home/pi/Code/media-player/scripts/start.sh
-Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/bin/bash -c "cd /home/pi/Code/media-player && ./scripts/start.sh"
+RemainAfterExit=yes
+Environment="PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin"
 Restart=always
-RestartSec=3
 TimeoutStartSec=3000
 
 [Install]
