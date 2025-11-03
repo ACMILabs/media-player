@@ -3,12 +3,12 @@ Description=Start media-player Application
 After=graphical-session.target
 
 [Service]
-Type=oneshot
+Type=simple
 ExecStart=/bin/bash -c "cd /home/pi/Code/media-player && ./scripts/start.sh"
 RemainAfterExit=yes
 Environment="PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin"
-Restart=no
-TimeoutStartSec=300
+Restart=always
+TimeoutStartSec=3000
 
 [Install]
 WantedBy=graphical-session.target

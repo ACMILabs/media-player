@@ -129,6 +129,14 @@
       line: 'wallpaper='
       state: present
 
+  - name: Set desktop_bg to black
+    become: yes
+    lineinfile:
+      path: /etc/xdg/pcmanfm/default/desktop-items-0.conf
+      regexp: '^desktop_bg='
+      line: 'desktop_bg=#000000'
+      state: present
+
   - name: Hide RaspberryPiOS menu bar
     become: yes
     lineinfile:
