@@ -1,7 +1,6 @@
 [Unit]
 Description=Start media-player Application
-Wants=network-online.target
-After=network-online.target
+After=graphical-session.target
 
 [Service]
 Type=simple
@@ -9,7 +8,7 @@ ExecStart=/bin/bash -c "cd /home/pi/Code/media-player && ./scripts/start.sh"
 RemainAfterExit=yes
 Environment="PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin"
 Restart=always
-TimeoutStartSec=3000
+TimeoutStartSec=30
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target

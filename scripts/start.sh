@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-# Load environment variables
-source ./config.env
+# Load env file:
+set -a
+source /home/pi/Code/media-player/config.env
+set +a
 
-# Start the media player
-source ./venv/bin/activate && python media_player.py &
+cd /home/pi/Code/media-player
+exec /home/pi/Code/media-player/venv/bin/python /home/pi/Code/media-player/media_player.py
