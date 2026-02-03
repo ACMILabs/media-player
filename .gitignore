@@ -24,3 +24,6 @@ __pycache__/
 tests/__pycache__/
 
 cached_playlist.json
+
+# Ansible
+ansible/inventory.ini

@@ -1,0 +1,192 @@
+---
+- name: media-player setup on RaspberryPiOS
+  hosts: media_player
+  gather_facts: yes
+  vars:
+    repo_path: "{{ ansible_env.HOME }}/Code/media-player"
+
+  tasks:
+  # --------------------------------------------------
+  # OS packages
+  # --------------------------------------------------
+  - name: Ensure required APT packages are present
+    become: yes
+    apt:
+      update_cache: yes
+      state: present
+      name:
+        - git
+        - curl
+        - build-essential
+        - python3-pip
+        - python3-setuptools
+        - python3-dev
+        - direnv
+        - libasound2-dev
+        - alsa-utils
+        - vim
+        - screen
+
+  - name: Add direnv hook to ~/.bashrc
+    become: no
+    lineinfile:
+      path: "{{ ansible_env.HOME }}/.bashrc"
+      line: 'eval "$(direnv hook bash)"'
+      state: present
+      insertafter: EOF
+      create: yes
+
+  # --------------------------------------------------
+  # Clone repo
+  # --------------------------------------------------
+  - name: Make ~/Code directory if absent
+    file:
+      path: "{{ ansible_env.HOME }}/Code"
+      state: directory
+      mode: '0755'
+
+  - name: Tell git to use the token for all GitHub HTTPS URLs
+    become: no
+    git_config:
+      scope: global
+      name: 'url.https://{{ github_token }}:x-oauth-basic@github.com/.insteadOf'
+      value: 'https://github.com/'
+    no_log: true
+
+  - name: Clone media-player (branch main)
+    become: no
+    git:
+      repo: "https://{{ github_token }}@github.com/ACMILabs/media-player.git"
+      dest: "{{ repo_path }}"
+      version: add/190-ansible
+      force: yes
+      update: yes
+      recursive: yes
+
+  # --------------------------------------------------
+  # Python venv + pip installs
+  # --------------------------------------------------
+  - name: Create Python virtualenv
+    become: no
+    command: python3 -m venv venv
+    args:
+      chdir: "{{ repo_path }}"
+
+  - name: Install requirements.txt inside venv
+    become: no
+    shell: |
+      source venv/bin/activate
+      pip install --upgrade pip
+      pip install -r requirements/prod.txt
+    args:
+      chdir: "{{ repo_path }}"
+      executable: /bin/bash
+
+  # --------------------------------------------------
+  # Create config.env
+  # --------------------------------------------------
+  - name: Create config.env
+    become: no
+    copy:
+      dest: "{{ repo_path }}/config.env"
+      content: |
+        export XOS_API_ENDPOINT="{{ xos_api_endpoint }}"
+        export XOS_PLAYLIST_ID="{{ xos_playlist_id }}"
+        export XOS_MEDIA_PLAYER_ID="{{ xos_media_player_id }}"
+        export AMQP_URL="{{ amqp_url }}"
+        export SENTRY_ID="{{ sentry_id }}"
+        export PROMETHEUS_PORT="{{ prometheus_port }}"
+
+  # --------------------------------------------------
+  # Create /data/resources directory and set permissions for pi user
+  # --------------------------------------------------
+  - name: Ensure /data is owned by pi user
+    become: yes
+    file:
+      path: /data
+      state: directory
+      owner: pi
+      group: pi
+      mode: '0755'
+
+  - name: Create /data/resources directory and set permissions for pi user
+    become: yes
+    file:
+      path: /data/resources
+      state: directory
+      owner: pi
+      group: pi
+      mode: '0755'
+
+  # --------------------------------------------------
+  # RaspberryPiOS tweaks
+  # --------------------------------------------------
+  - name: Set RaspberryPiOS background to black
+    become: yes
+    lineinfile:
+      path: /etc/xdg/pcmanfm/default/desktop-items-0.conf
+      regexp: '^wallpaper='
+      line: 'wallpaper='
+      state: present
+
+  - name: Set desktop_bg to black
+    become: yes
+    lineinfile:
+      path: /etc/xdg/pcmanfm/default/desktop-items-0.conf
+      regexp: '^desktop_bg='
+      line: 'desktop_bg=#000000'
+      state: present
+
+  - name: Hide RaspberryPiOS menu bar
+    become: yes
+    lineinfile:
+      path: /etc/xdg/lxpanel-pi/panels/panel
+      regexp: '^autohide='
+      line: 'autohide=1'
+      state: present
+
+  - name: Ensure ~/.config/systemd/user directory exists
+    become: no
+    file:
+      path: "{{ ansible_env.HOME }}/.config/systemd/user"
+      state: directory
+      mode: '0755'
+
+  - name: Copy media-player.service to ~/.config/systemd/user/
+    become: no
+    copy:
+      src: "{{ repo_path }}/media-player.service"
+      dest: "{{ ansible_env.HOME }}/.config/systemd/user/media-player.service"
+      remote_src: yes
+
+  - name: Enable media-player service
+    become: no
+    command: systemctl --user enable media-player.service
+
+  # --------------------------------------------------
+  # Daily reboot at 8AM Melbourne time
+  # --------------------------------------------------
+  - name: Ensure system timezone is set to Australia/Melbourne
+    become: yes
+    timezone:
+      name: Australia/Melbourne
+    tags: reboot_cron
+
+  - name: Add cron job to reboot every morning at 8AM
+    become: yes
+    cron:
+      name: "Daily reboot at 8AM Melbourne time"
+      user: root
+      minute: "0"
+      hour: "8"
+      job: "/sbin/shutdown -r now"
+      state: present
+    tags: reboot_cron
+
+  - name: Add cron job to restart media-player service on boot
+    become: no
+    cron:
+      name: "Restart media-player service on boot"
+      user: "{{ ansible_env.USER }}"
+      special_time: reboot
+      job: "systemctl --user restart media-player.service"
