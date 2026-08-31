@@ -23,8 +23,26 @@ touch /root/.Xauthority
 echo "Starting X"
 startx -- -nocursor &
 
-# TODO: work out how to detect X has started
+# Detect if X has started
 sleep 5
+X_PID=$!
+for _ in $(seq 1 60); do
+  if xset -q >/dev/null 2>&1; then
+    echo "X is ready on ${DISPLAY}"
+    break
+  fi
+
+  if ! kill -0 "$X_PID" 2>/dev/null; then
+    echo "X exited before becoming ready"
+    exit 1
+  fi
+
+  sleep 0.5
+done
+if ! xset -q >/dev/null 2>&1; then
+  echo "X did not become ready"
+  exit 1
+fi
 
 # Print all of the current displays used by running processes
 echo "Displays in use after starting X"
