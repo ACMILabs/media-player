@@ -1,47 +1,53 @@
-# base-image for python on any machine using a template variable,
-# see more about dockerfile templates here: https://www.balena.io/docs/learn/develop/dockerfile/
-FROM balenalib/%%BALENA_ARCH%%-ubuntu-python:3.8-latest-run
+# Python 3.11 is a conservative upgrade from 3.8 and remains supported until
+# October 2027. Pin the Debian release so a base-image update cannot silently
+# move the player to a new operating-system release.
+FROM python:3.11-slim-bookworm
 
-# use `install_packages` if you need to install dependencies,
-# for instance if you need git, just uncomment the line below.
-RUN install_packages \
-  vlc \
-  vlc-plugin-* \
-  g++ \
-  xserver-xorg-video-intel \
-  xserver-xorg-input-evdev \
-  xinit \
-  xfce4 \
-  xfce4-terminal \
-  x11-xserver-utils \
-  dbus-x11 \
-  matchbox-keyboard \
-  xterm \
-  unclutter \
-  # For system volume
-  libasound2-dev \
-  # Audio
-  alsa-utils \
-  # Intel GPU drivers for VLC
-  i965-va-driver \
-  vainfo \
-  vdpau-va-driver
+ARG DEBIAN_FRONTEND=noninteractive
 
-# Disable screen from turning it off
-RUN echo "#!/bin/bash" > /etc/X11/xinit/xserverrc \
-  && echo "" >> /etc/X11/xinit/xserverrc \
-  && echo 'exec /usr/bin/X -s 0 dpms' >> /etc/X11/xinit/xserverrc
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    alsa-utils \
+    dbus-x11 \
+    g++ \
+    i965-va-driver \
+    intel-media-va-driver \
+    libasound2-dev \
+    matchbox-keyboard \
+    mesa-utils \
+    pciutils \
+    procps \
+    udev \
+    unclutter \
+    util-linux \
+    vainfo \
+    vlc \
+    vlc-plugin-access-extra \
+    vlc-plugin-base \
+    vlc-plugin-video-output \
+    x11-utils \
+    x11-xserver-utils \
+    xfce4 \
+    xfce4-terminal \
+    xinit \
+    xserver-xorg \
+    xserver-xorg-input-evdev \
+    xserver-xorg-video-intel \
+    xterm \
+  && rm -rf /var/lib/apt/lists/*
 
 # Avoid requesting XFCE4 question on X start
 ENV XFCE_PANEL_MIGRATE_DEFAULT=1
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_NO_CACHE_DIR=1
 
 # Enable udevd so that plugged dynamic hardware devices show up in our container.
-ENV UDEV 1
+ENV UDEV=1
 
 # Set dbus environment variables
-ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
+ENV DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
 # Copy Intel display settings for Dell OptiPlex 3070
 COPY ./conf/20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
@@ -53,6 +59,11 @@ COPY ./conf/xfce4-panel.xml /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4
 COPY ./requirements/base.txt /code/requirements/base.txt
 COPY ./requirements/prod.txt /code/requirements/prod.txt
 RUN pip install -Ur /code/requirements/prod.txt
+
+# Docker Official Images do not include balenalib's device-populating
+# entrypoint. Preserve that behaviour for DRM, audio and hot-plugged devices.
+COPY ./scripts/balena-entrypoint.sh /usr/local/bin/balena-entrypoint.sh
+RUN chmod 0755 /usr/local/bin/balena-entrypoint.sh
 
 # Remove the panel completely
 COPY ./conf/xinitrc /etc/xdg/xfce4/
@@ -67,5 +78,5 @@ COPY ./resources/FaktPro-Bold.otf /usr/share/fonts/truetype/freefont/FaktPro-Bol
 COPY ./resources/FaktPro-BoldItalic.otf /usr/share/fonts/truetype/freefont/FaktPro-BoldItalic.otf
 
 # x86.sh will run when the container starts up on any non-Raspberry Pi device (i.e. Intel OptiPlex, NUC)
-# CMD ["bash"]
+ENTRYPOINT ["/usr/local/bin/balena-entrypoint.sh"]
 CMD ["bash","scripts/x86.sh"]
